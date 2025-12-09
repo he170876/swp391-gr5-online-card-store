@@ -151,3 +151,22 @@ CREATE TABLE WalletTransaction (
     CONSTRAINT fk_wallet_user FOREIGN KEY (user_id) REFERENCES [User](id)
 );
 GO
+
+INSERT INTO Role (name, description) VALUES
+('ADMIN', 'System administrator'),
+('STAFF', 'Internal staff'),
+('CUSTOMER', 'Regular customer');
+
+INSERT INTO [User] (email, password_hash, full_name, phone, address, status, wallet_balance, role_id)
+VALUES
+('admin@ocs.com', 
+ '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
+ 'Administrator', '0900000001', 'System HQ', 'ACTIVE', 0, 1),
+
+('staff@ocs.com',
+ '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
+ 'System Staff', '0900000002', 'Office 1', 'ACTIVE', 0, 2),
+
+('customer@ocs.com',
+ '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
+ 'Sample Customer', '0900000003', 'District 1', 'ACTIVE', 50000, 3);

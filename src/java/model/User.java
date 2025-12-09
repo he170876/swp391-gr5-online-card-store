@@ -1,5 +1,6 @@
 package model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class User {
@@ -10,7 +11,7 @@ public class User {
     private String phone;
     private String address;
     private String status;
-    private double walletBalance;
+    private BigDecimal walletBalance; 
     private long roleId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -18,8 +19,9 @@ public class User {
     public User() {}
 
     public User(long id, String email, String passwordHash, String fullName, String phone,
-                String address, String status, double walletBalance, long roleId,
+                String address, String status, BigDecimal walletBalance, long roleId,
                 LocalDateTime createdAt, LocalDateTime updatedAt) {
+
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -32,8 +34,6 @@ public class User {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
-
-    // Getters & Setters…
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
@@ -56,8 +56,8 @@ public class User {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public double getWalletBalance() { return walletBalance; }
-    public void setWalletBalance(double walletBalance) { this.walletBalance = walletBalance; }
+    public BigDecimal getWalletBalance() { return walletBalance; }
+    public void setWalletBalance(BigDecimal walletBalance) { this.walletBalance = walletBalance; }
 
     public long getRoleId() { return roleId; }
     public void setRoleId(long roleId) { this.roleId = roleId; }
