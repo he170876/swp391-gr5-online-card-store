@@ -109,7 +109,7 @@ public class RegisterController extends HttpServlet {
         u.setPasswordHash(hashedInput);
         u.setPhone(phone);
         u.setAddress(address);
-        u.setRoleId(3L);
+        u.setRoleId(3);
 
         boolean inserted = dao.insertUser(u);
 
