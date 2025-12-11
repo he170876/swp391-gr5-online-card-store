@@ -18,7 +18,8 @@
         <c:choose>
             <c:when test="${empty sessionScope.user}">
                 <h2>Chào mừng</h2>
-                <a href="login">Đăng nhập</a>
+                <a href="login">Đăng nhập</a></br>
+                <a href="register">Đăng ký</a>
             </c:when>
 
             <c:otherwise>

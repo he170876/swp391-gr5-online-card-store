@@ -71,6 +71,12 @@ public class LoginController extends HttpServlet {
             return;
         }
 
+        if (user.getStatus().equals("LOCKED")) {
+            request.setAttribute("error", "Tài khoản đã bị khóa.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
+
         //gửi thông tin user lên session
         request.getSession().setAttribute("user", user);
         response.sendRedirect(request.getContextPath() + "/home");
