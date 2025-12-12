@@ -44,6 +44,9 @@
                             </div>
 
                             <!-- Hiển thị msg --
+                            <c:if test="${not empty msg}">
+                                <div class="alert alert-success">${msg}</div>
+                            </c:if>
                             <c:if test="${not empty param.msg}">
                                 <div class="alert alert-success">${param.msg}</div>
                             </c:if>
@@ -51,6 +54,9 @@
                             <!-- Hiển thị lỗi -->
                             <c:if test="${not empty error}">
                                 <div class="alert alert-danger" role="alert">${error}</div>
+                            </c:if>
+                            <c:if test="${not empty param.error}">
+                                <div class="alert alert-danger" role="alert">${param.error}</div>
                             </c:if>
 
                             <form action="${pageContext.request.contextPath}/registerVerifyOTP" method="post">
@@ -69,10 +75,13 @@
                             </form>
 
                             <div class="form-login text-center">
-                                <form action="${pageContext.request.contextPath}/resend-otp" method="post">
-                                    <input type="hidden" name="userId" value="${userId}" />
+                                <form action="${pageContext.request.contextPath}/resendRegisterOTP" method="post">
                                     <button class="btn btn-secondary" style="width:100%;">Gửi lại OTP</button>
                                 </form>
+                            </div>
+
+                            <div class="signinform text-center">
+                                <h4>Already a user? <a href="${pageContext.request.contextPath}/login" class="hover-a">Sign In</a></h4>
                             </div>
 
                         </div>

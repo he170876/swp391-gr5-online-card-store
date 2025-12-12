@@ -103,4 +103,34 @@ public class UserOTPDAO extends DBContext {
         }
     }
 
+    public void resetSendCount(long userId) {
+        String sql = """
+        UPDATE UserOTP
+        SET send_count = 0
+        WHERE user_id = ?
+    """;
+
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setLong(1, userId);
+            stm.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("UserOTPDAO.resetSendCount: " + e.getMessage());
+        }
+    }
+
+    public void resetLastSent(long userId) {
+        String sql = """
+        UPDATE UserOTP
+        SET last_send = NULL
+        WHERE user_id = ?
+    """;
+
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setLong(1, userId);
+            stm.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("UserOTPDAO.resetLastSent: " + e.getMessage());
+        }
+    }
+
 }

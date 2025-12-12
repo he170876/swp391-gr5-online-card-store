@@ -32,9 +32,13 @@
                                 <div class="alert alert-danger" role="alert">${error}</div>
                             </c:if>
 
+                            <c:if test="${not empty param.error}">
+                                <div class="alert alert-danger" role="alert">${param.error}</div>
+                            </c:if>
+
                             <c:if test="${not empty errors.general}">
                                 <div class="alert alert-danger" role="alert">${errors.general}</div>
-                            </c:if>
+                            </c:if>                                                    
 
                             <form action="${pageContext.request.contextPath}/register" method="post" class="form-login">
 
