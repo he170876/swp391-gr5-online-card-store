@@ -1,25 +1,24 @@
 <%-- 
-    Document   : homepage
-    Created on : Dec 10, 2025, 1:48:50 AM
+    Document   : staff
+    Created on : Dec 10, 2025, 2:34:34 AM
     Author     : hades
 --%>
 
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8">
-        <title>Home - Online Card Store</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Staff Page</title>
     </head>
     <body>
-
+        <h1>Staff Page</h1>
         <c:choose>
             <c:when test="${empty sessionScope.user}">
                 <h2>Chào mừng</h2>
-                <a href="login">Đăng nhập</a></br>
-                <a href="register">Đăng ký</a>
+                <a href="login">Đăng nhập</a>
             </c:when>
 
             <c:otherwise>
@@ -30,7 +29,5 @@
                 </form>
             </c:otherwise>
         </c:choose>
-
     </body>
 </html>
-

@@ -10,6 +10,7 @@ import java.io.IOException;
 import model.User;
 
 @WebFilter(urlPatterns = {
+    "/admin.jsp"
 })
 public class OnlyAdminFilter extends HttpFilter {
 

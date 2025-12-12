@@ -6,11 +6,16 @@ public class Product {
     private long providerId;
     private String name;
     private String description;
+    private String imageUrl;
     private double costPrice;
     private double sellPrice;
     private double discountPercent;
     private int quantity;
     private String status;
+    
+    // Computed fields (for display with JOIN)
+    private String categoryName;
+    private String providerName;
 
     public Product() {}
 
@@ -110,5 +115,34 @@ public class Product {
         this.status = status;
     }
     
+    // Image URL
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
     
+    // Computed fields getters/setters
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getProviderName() {
+        return providerName;
+    }
+
+    public void setProviderName(String providerName) {
+        this.providerName = providerName;
+    }
+    
+    // Computed: final price after discount
+    public double getFinalPrice() {
+        return sellPrice * (1 - discountPercent / 100);
+    }
 }

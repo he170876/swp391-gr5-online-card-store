@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
 import java.util.Optional;
 import model.User;
 import util.PasswordUtil;
@@ -68,6 +69,21 @@ public class LoginController extends HttpServlet {
         if (user == null) {
             request.setAttribute("error", "Không thể tải thông tin người dùng.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
+
+        if (user.getStatus().equals("LOCKED")) {
+            request.setAttribute("error", "Tài khoản đã bị khóa.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
+
+        if (user.getStatus().equals("INACTIVE")) {
+            // Lưu email để verify OTP
+            request.getSession().setAttribute("registerEmail", email);
+
+            String msg = URLEncoder.encode("Đã đăng ký thành công! Vui lòng kiểm tra email để nhập OTP.", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/registerVerifyOTP?msg=" + msg);
             return;
         }
 
