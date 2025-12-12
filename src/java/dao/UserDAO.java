@@ -89,7 +89,7 @@ public class UserDAO extends DBContext {
             stm.setString(3, user.getFullName());
             stm.setString(4, user.getPhone());
             stm.setString(5, user.getAddress());
-            stm.setString(6, "ACTIVE");
+            stm.setString(6, "INACTIVE");
             stm.setBigDecimal(7, BigDecimal.ZERO);
             stm.setLong(8, 3);
 
@@ -109,4 +109,18 @@ public class UserDAO extends DBContext {
         }
         return false;
     }
+
+    public boolean activateUser(long userId) {
+        try {
+            String sql = "UPDATE [User] SET status = 'ACTIVE', updated_at = GETDATE() WHERE id = ?";
+            PreparedStatement stm = connection.prepareStatement(sql);
+            stm.setLong(1, userId);
+
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("UserDAO.activateUser: " + e.getMessage());
+        }
+        return false;
+    }
+
 }

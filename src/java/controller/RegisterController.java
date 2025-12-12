@@ -11,6 +11,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import model.User;
@@ -124,6 +126,13 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-        response.sendRedirect(request.getContextPath() + "/login");
+        HttpSession session = request.getSession();
+
+        // Lưu email để verify OTP
+        session.setAttribute("registerEmail", email);
+
+        String msg = URLEncoder.encode("Đăng ký thành công! Vui lòng kiểm tra email để nhập OTP.", "UTF-8");
+        response.sendRedirect(request.getContextPath() + "/registerVerifyOTP?msg=" + msg);
+
     }
 }
