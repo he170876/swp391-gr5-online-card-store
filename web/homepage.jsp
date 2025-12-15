@@ -15,21 +15,21 @@
     </head>
     <body>
 
-        <c:choose>
-            <c:when test="${empty sessionScope.user}">
-                <h2>Chào mừng</h2>
-                <a href="login">Đăng nhập</a></br>
-                <a href="register">Đăng ký</a>
-            </c:when>
+    <c:choose>
+        <c:when test="${empty sessionScope.user}">
+            <h2>Chào mừng</h2>
+            <a href="login">Đăng nhập</a></br>
+            <a href="register">Đăng ký</a>
+        </c:when>
 
-            <c:otherwise>
-                <h2>Xin chào ${sessionScope.user.fullName} (Role: ${sessionScope.user.roleId})</h2>
+        <c:otherwise>
+            <h2>Xin chào ${sessionScope.user.fullName} (Role: ${sessionScope.user.roleId})</h2>
 
-                <form action="logout" method="get">
-                    <button type="submit">Đăng xuất</button>
-                </form>
-            </c:otherwise>
-        </c:choose>
+            <form action="logout" method="get">
+                <button type="submit">Đăng xuất</button>
+            </form>
+        </c:otherwise>
+    </c:choose>
 
     </body>
 </html>
