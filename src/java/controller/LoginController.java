@@ -4,6 +4,7 @@
  */
 package controller;
 
+import controller.AdminConfigController;
 import dao.UserDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -87,9 +88,22 @@ public class LoginController extends HttpServlet {
             return;
         }
 
+        // Check maintenance mode
+        boolean maintenanceMode = AdminConfigController.isMaintenanceMode();
+        if (maintenanceMode && user.getRoleId() != 1) {
+            // Only admin can login during maintenance
+            request.setAttribute("error", "Hệ thống đang bảo trì. Chỉ quản trị viên mới có thể đăng nhập.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
+
         //gửi thông tin user lên session
         request.getSession().setAttribute("user", user);
-        response.sendRedirect(request.getContextPath() + "/home");
+        if (user.getRoleId() == 3) {
+            response.sendRedirect(request.getContextPath() + "/customer/home");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/home");
+        }
     }
 
 }

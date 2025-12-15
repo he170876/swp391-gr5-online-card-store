@@ -2,76 +2,140 @@ package service;
 
 import dao.CardInfoDAO;
 import dao.OrderDAO;
+import dao.ProductDAO;
+import dao.UserDAO;
+import dao.WalletTransactionDAO;
 import model.CardInfo;
 import model.Order;
-import util.CardInfoStatus;
+import model.Product;
+import model.User;
+import model.WalletTransaction;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-/**
- * Service for assigning card to order and managing order.
- */
 public class OrderService {
 
-    private final OrderDAO orderDAO;
-    private final CardInfoDAO cardInfoDAO;
+    private OrderDAO orderDAO;
+    private CardInfoDAO cardInfoDAO;
+    private ProductDAO productDAO;
+    private UserDAO userDAO;
+    private WalletTransactionDAO walletTransactionDAO;
 
     public OrderService() {
         this.orderDAO = new OrderDAO();
         this.cardInfoDAO = new CardInfoDAO();
+        this.productDAO = new ProductDAO();
+        this.userDAO = new UserDAO();
+        this.walletTransactionDAO = new WalletTransactionDAO();
     }
 
-    /**
-     * Assign an available card to an order.
-     * Logic:
-     * 1. Find AVAILABLE card for the product
-     * 2. Update Order.cardinfo_id
-     * 3. Update CardInfo status to SOLD
-     * 4. Return true if successful
-     */
-    public boolean assignCardToOrder(long orderId, long productId) {
+    public Order purchaseProduct(long userId, long productId, String receiverEmail) {
+        // Get product
+        Product product = productDAO.findById(productId);
+        if (product == null || !"ACTIVE".equals(product.getStatus())) {
+            return null; // Product not found or inactive
+        }
+
+        // Check stock
+        CardInfo availableCard = cardInfoDAO.findAvailableByProduct(productId);
+        if (availableCard == null) {
+            return null; // No available card
+        }
+
+        // Get user
+        User user = userDAO.findById(userId);
+        if (user == null) {
+            return null;
+        }
+
+        // Calculate price
+        double originalPrice = product.getSellPrice();
+        double discountPercent = product.getDiscountPercent();
+        double finalPrice = originalPrice * (1 - discountPercent / 100.0);
+
+        // Check wallet balance
+        if (user.getWalletBalance().compareTo(BigDecimal.valueOf(finalPrice)) < 0) {
+            return null; // Insufficient balance
+        }
+
         try {
-            CardInfo available = cardInfoDAO.findAvailableCard(productId);
-            if (available == null) {
-                System.out.println("No available card found for productId: " + productId);
-                return false;
+            // Start transaction (simplified - in production use proper transaction management)
+            // Update card status
+            if (!cardInfoDAO.updateStatus(availableCard.getId(), "SOLD")) {
+                return null;
             }
 
-            boolean updateOrder = orderDAO.updateCardInfo(orderId, available.getId());
-            if (!updateOrder) {
-                System.out.println("Failed to update order " + orderId + " with cardInfoId " + available.getId());
-                return false;
+            // Create order
+            Order order = new Order();
+            order.setUserId(userId);
+            order.setCardInfoId(availableCard.getId());
+            order.setOriginalPrice(originalPrice);
+            order.setDiscountPercent(discountPercent);
+            order.setFinalPrice(finalPrice);
+            order.setStatus("PAID");
+            order.setReceiverEmail(receiverEmail);
+            order.setCreatedAt(LocalDateTime.now());
+
+            if (!orderDAO.create(order)) {
+                // Rollback card status
+                cardInfoDAO.updateStatus(availableCard.getId(), "AVAILABLE");
+                return null;
             }
 
-            boolean updateCard = cardInfoDAO.updateStatus(available.getId(), CardInfoStatus.SOLD);
-            if (!updateCard) {
-                System.out.println("Failed to update card " + available.getId() + " to SOLD");
-                return false;
+            // Update wallet balance
+            BigDecimal newBalance = user.getWalletBalance().subtract(BigDecimal.valueOf(finalPrice));
+            if (!userDAO.updateWalletBalance(userId, newBalance)) {
+                // Rollback
+                cardInfoDAO.updateStatus(availableCard.getId(), "AVAILABLE");
+                return null;
             }
 
-            return true;
+            // Create wallet transaction
+            WalletTransaction transaction = new WalletTransaction();
+            transaction.setUserId(userId);
+            transaction.setType("PURCHASE");
+            transaction.setAmount(-finalPrice);
+            transaction.setBalance(newBalance.doubleValue());
+            transaction.setStatus("SUCCESS");
+            transaction.setCreatedAt(LocalDateTime.now());
+            transaction.setUpdatedAt(LocalDateTime.now());
+            walletTransactionDAO.create(transaction);
+
+            // Get created order
+            return orderDAO.findById(order.getId());
         } catch (Exception e) {
-            System.out.println("Error assigning card to order: " + e.getMessage());
-            e.printStackTrace();
-            return false;
+            System.out.println("OrderService.purchaseProduct: " + e.getMessage());
+            // Rollback card status
+            cardInfoDAO.updateStatus(availableCard.getId(), "AVAILABLE");
+            return null;
         }
     }
 
-    /**
-     * Create new order.
-     */
-    public Order createOrder(Order order) {
-        long id = orderDAO.create(order);
-        if (id > 0) {
-            order.setId(id);
-            return order;
+    public Order getOrderById(long orderId) {
+        return orderDAO.findById(orderId);
+    }
+
+    public java.util.List<Order> getOrdersByUserId(long userId) {
+        return orderDAO.findByUserId(userId);
+    }
+
+    public CardInfo getCardInfoByOrderId(long orderId) {
+        Order order = orderDAO.findById(orderId);
+        if (order != null) {
+            return cardInfoDAO.findById(order.getCardInfoId());
         }
         return null;
     }
 
-    /**
-     * Get order by ID.
-     */
-    public Order getOrderById(long orderId) {
-        return orderDAO.getById(orderId);
+    public Product getProductByOrderId(long orderId) {
+        Order order = orderDAO.findById(orderId);
+        if (order != null) {
+            CardInfo cardInfo = cardInfoDAO.findById(order.getCardInfoId());
+            if (cardInfo != null) {
+                return productDAO.findById(cardInfo.getProductId());
+            }
+        }
+        return null;
     }
 
     /**
@@ -79,13 +143,6 @@ public class OrderService {
      */
     public java.util.List<Order> getAllOrders() {
         return orderDAO.getAllOrders();
-    }
-
-    /**
-     * Get orders by user.
-     */
-    public java.util.List<Order> getOrdersByUser(long userId) {
-        return orderDAO.getOrdersByUser(userId);
     }
 
     /**
