@@ -37,21 +37,6 @@ public class UserOTPDAO extends DBContext {
             }
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.getByUserId: " + e.getMessage());
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("UserOTPDAO.getByUserId: " + e.getMessage());
-            }
-            try {
-                if (stm != null) {
-                    stm.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("UserOTPDAO.getByUserId: " + e.getMessage());
-            }
         }
         return null;
     }
@@ -73,63 +58,18 @@ public class UserOTPDAO extends DBContext {
             stm.executeUpdate();
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.insertOrUpdate: " + e.getMessage());
-        } finally {
-            try {
-                if (stm != null) {
-                    stm.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("UserOTPDAO.insertOrUpdate: " + e.getMessage());
-            }
+
         }
     }
 
     public void deleteOTP(long userId) {
         String sql = "DELETE FROM UserOTP WHERE user_id = ?";
-        try {
-            stm = connection.prepareStatement(sql);
-            stm.setLong(1, userId);
-            stm.executeUpdate();
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+            ps.executeUpdate();
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.deleteOTP: " + e.getMessage());
-        } finally {
-            try {
-                if (stm != null) {
-                    stm.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("UserOTPDAO.deleteOTP: " + e.getMessage());
-            }
-        }
-    }
-
-    public void resetSendCount(long userId) {
-        String sql = """
-        UPDATE UserOTP
-        SET send_count = 0
-        WHERE user_id = ?
-    """;
-
-        try (PreparedStatement stm = connection.prepareStatement(sql)) {
-            stm.setLong(1, userId);
-            stm.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println("UserOTPDAO.resetSendCount: " + e.getMessage());
-        }
-    }
-
-    public void resetLastSent(long userId) {
-        String sql = """
-        UPDATE UserOTP
-        SET last_send = NULL
-        WHERE user_id = ?
-    """;
-
-        try (PreparedStatement stm = connection.prepareStatement(sql)) {
-            stm.setLong(1, userId);
-            stm.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println("UserOTPDAO.resetLastSent: " + e.getMessage());
         }
     }
 
