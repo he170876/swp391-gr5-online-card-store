@@ -2,6 +2,7 @@ package dao;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Order;
@@ -126,12 +127,12 @@ public class OrderDAO extends DBContext {
     public List<Double> getRevenueLast7Days() {
         List<Double> revenues = new ArrayList<>();
         try {
-            String sql = "SELECT ISNULL(SUM(final_price), 0) as revenue " +
-                    "FROM [Order] " +
-                    "WHERE created_at >= DATEADD(DAY, -6, CAST(GETDATE() AS DATE)) " +
-                    "AND status IN ('PAID', 'COMPLETED') " +
-                    "GROUP BY CAST(created_at AS DATE) " +
-                    "ORDER BY CAST(created_at AS DATE)";
+            String sql = "SELECT ISNULL(SUM(final_price), 0) as revenue "
+                    + "FROM [Order] "
+                    + "WHERE created_at >= DATEADD(DAY, -6, CAST(GETDATE() AS DATE)) "
+                    + "AND status IN ('PAID', 'COMPLETED') "
+                    + "GROUP BY CAST(created_at AS DATE) "
+                    + "ORDER BY CAST(created_at AS DATE)";
             stm = connection.prepareStatement(sql);
             rs = stm.executeQuery();
             while (rs.next()) {
@@ -150,8 +151,8 @@ public class OrderDAO extends DBContext {
     public List<Order> findAll(int offset, int limit) {
         List<Order> orders = new ArrayList<>();
         try {
-            String sql = "SELECT id, user_id, cardinfo_id, created_at, original_price, discount_percent, final_price, status, receiver_email " +
-                    "FROM [Order] ORDER BY created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            String sql = "SELECT id, user_id, cardinfo_id, created_at, original_price, discount_percent, final_price, status, receiver_email "
+                    + "FROM [Order] ORDER BY created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
             stm = connection.prepareStatement(sql);
             stm.setInt(1, offset);
             stm.setInt(2, limit);
@@ -165,22 +166,60 @@ public class OrderDAO extends DBContext {
         return orders;
     }
 
-    private Order mapResultSetToOrder(ResultSet rs) throws Exception {
+    private Order mapResultSetToOrder(ResultSet rs) {
         Order order = new Order();
-        order.setId(rs.getLong("id"));
-        order.setUserId(rs.getLong("user_id"));
-        order.setCardInfoId(rs.getLong("cardinfo_id"));
-        java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
-        if (createdAt != null) {
-            order.setCreatedAt(createdAt.toLocalDateTime());
+        try {
+            order.setId(rs.getLong("id"));
+            order.setUserId(rs.getLong("user_id"));
+            order.setCardInfoId(rs.getLong("cardinfo_id"));
+            java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
+            if (createdAt != null) {
+                order.setCreatedAt(createdAt.toLocalDateTime());
+            }
+            order.setOriginalPrice(rs.getDouble("original_price"));
+            order.setDiscountPercent(rs.getDouble("discount_percent"));
+            order.setFinalPrice(rs.getDouble("final_price"));
+            order.setStatus(rs.getString("status"));
+            order.setReceiverEmail(rs.getString("receiver_email"));
+        } catch (Exception e) {
+            System.out.println("OrderDAO.mapResultSetToOrder: " + e.getMessage());
         }
-        order.setOriginalPrice(rs.getDouble("original_price"));
-        order.setDiscountPercent(rs.getDouble("discount_percent"));
-        order.setFinalPrice(rs.getDouble("final_price"));
-        order.setStatus(rs.getString("status"));
-        order.setReceiverEmail(rs.getString("receiver_email"));
+
         return order;
     }
+
+    public List<Order> getAllOrders() {
+        List<Order> orders = new ArrayList<>();
+        try {
+            String sql = "SELECT id, user_id, cardinfo_id, created_at, original_price, discount_percent, final_price, status, receiver_email FROM [Order] ORDER BY created_at DESC";
+            try ( PreparedStatement stm = connection.prepareStatement(sql)) {
+                try ( ResultSet rs = stm.executeQuery()) {
+                    while (rs.next()) {
+                        orders.add(mapResultSetToOrder(rs));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return orders;
+    }
+
+    public Order getById(long orderId) {
+        try {
+            String sql = "SELECT id, user_id, cardinfo_id, created_at, original_price, discount_percent, final_price, status, receiver_email FROM [Order] WHERE id = ?";
+            try ( PreparedStatement stm = connection.prepareStatement(sql)) {
+                stm.setLong(1, orderId);
+                try ( ResultSet rs = stm.executeQuery()) {
+                    if (rs.next()) {
+                        return mapResultSetToOrder(rs);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return null;
+    }
+
 }
-
-
