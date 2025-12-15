@@ -4,8 +4,13 @@
  */
 package dao;
 
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import model.User;
 import util.DBContext;
 
@@ -27,34 +32,236 @@ public class UserDAO extends DBContext {
             rs = stm.executeQuery();
             return rs.next();
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("UserDAO.checkLogin: " + e.getMessage());
         }
         return false;
     }
 
     public User getUserByEmail(String email) {
         try {
-            String sql = "SELECT id, email, password_hash, full_name, phone, address, status, wallet_balance, role_id FROM [User] WHERE email = ?";
+            String sql = "SELECT id, email, password_hash, full_name, phone, address, status, wallet_balance, role_id, created_at, updated_at FROM [User] WHERE email = ?";
             stm = connection.prepareStatement(sql);
             stm.setString(1, email);
             rs = stm.executeQuery();
             if (rs.next()) {
-                User u = new User();
-                u.setId(rs.getLong("id"));
-                u.setEmail(rs.getString("email"));
-                u.setPasswordHash(rs.getString("password_hash"));
-                u.setFullName(rs.getString("full_name"));
-                u.setPhone(rs.getString("phone"));
-                u.setAddress(rs.getString("address"));
-                u.setStatus(rs.getString("status"));
-                u.setWalletBalance(rs.getBigDecimal("wallet_balance"));
-                u.setRoleId(rs.getLong("role_id"));
-                return u;
+                return mapResultSetToUser(rs);
             }
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("UserDAO.getUserByEmail: " + e.getMessage());
         }
         return null;
     }
 
+    public User findById(long id) {
+        try {
+            String sql = "SELECT id, email, password_hash, full_name, phone, address, status, wallet_balance, role_id, created_at, updated_at FROM [User] WHERE id = ?";
+            stm = connection.prepareStatement(sql);
+            stm.setLong(1, id);
+            rs = stm.executeQuery();
+            if (rs.next()) {
+                return mapResultSetToUser(rs);
+            }
+        } catch (Exception e) {
+            System.out.println("UserDAO.findById: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public boolean emailExists(String email) {
+        try {
+            String sql = "SELECT 1 FROM [User] WHERE email = ?";
+            stm = connection.prepareStatement(sql);
+            stm.setString(1, email);
+            rs = stm.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            System.out.println("UserDAO.emailExists: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean create(User user) {
+        try {
+            String sql = "INSERT INTO [User] (email, password_hash, full_name, phone, address, status, wallet_balance, role_id, created_at, updated_at) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE())";
+            stm = connection.prepareStatement(sql);
+            stm.setString(1, user.getEmail());
+            stm.setString(2, user.getPasswordHash());
+            stm.setString(3, user.getFullName());
+            stm.setString(4, user.getPhone());
+            stm.setString(5, user.getAddress());
+            stm.setString(6, user.getStatus());
+            stm.setBigDecimal(7, user.getWalletBalance());
+            stm.setLong(8, user.getRoleId());
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("UserDAO.create: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean update(User user) {
+        try {
+            String sql = "UPDATE [User] SET full_name = ?, phone = ?, address = ?, status = ?, updated_at = GETDATE() WHERE id = ?";
+            stm = connection.prepareStatement(sql);
+            stm.setString(1, user.getFullName());
+            stm.setString(2, user.getPhone());
+            stm.setString(3, user.getAddress());
+            stm.setString(4, user.getStatus());
+            stm.setLong(5, user.getId());
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("UserDAO.update: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updatePassword(long userId, String newPasswordHash) {
+        try {
+            String sql = "UPDATE [User] SET password_hash = ?, updated_at = GETDATE() WHERE id = ?";
+            stm = connection.prepareStatement(sql);
+            stm.setString(1, newPasswordHash);
+            stm.setLong(2, userId);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("UserDAO.updatePassword: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateWalletBalance(long userId, BigDecimal newBalance) {
+        try {
+            String sql = "UPDATE [User] SET wallet_balance = ?, updated_at = GETDATE() WHERE id = ?";
+            stm = connection.prepareStatement(sql);
+            stm.setBigDecimal(1, newBalance);
+            stm.setLong(2, userId);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("UserDAO.updateWalletBalance: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public List<User> findAll(int offset, int limit) {
+        List<User> users = new ArrayList<>();
+        try {
+            String sql = "SELECT id, email, password_hash, full_name, phone, address, status, wallet_balance, role_id, created_at, updated_at "
+                    + "FROM [User] ORDER BY id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            stm = connection.prepareStatement(sql);
+            stm.setInt(1, offset);
+            stm.setInt(2, limit);
+            rs = stm.executeQuery();
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+        } catch (Exception e) {
+            System.out.println("UserDAO.findAll: " + e.getMessage());
+        }
+        return users;
+    }
+
+    public List<User> findByRole(long roleId, int offset, int limit) {
+        List<User> users = new ArrayList<>();
+        try {
+            String sql = "SELECT id, email, password_hash, full_name, phone, address, status, wallet_balance, role_id, created_at, updated_at "
+                    + "FROM [User] WHERE role_id = ? ORDER BY id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            stm = connection.prepareStatement(sql);
+            stm.setLong(1, roleId);
+            stm.setInt(2, offset);
+            stm.setInt(3, limit);
+            rs = stm.executeQuery();
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+        } catch (Exception e) {
+            System.out.println("UserDAO.findByRole: " + e.getMessage());
+        }
+        return users;
+    }
+
+    public List<User> search(String keyword, Long roleId, String status, int offset, int limit) {
+        List<User> users = new ArrayList<>();
+        try {
+            StringBuilder sql = new StringBuilder(
+                    "SELECT id, email, password_hash, full_name, phone, address, status, wallet_balance, role_id, created_at, updated_at "
+                    + "FROM [User] WHERE 1=1");
+            List<Object> params = new ArrayList<>();
+            int paramIndex = 1;
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                sql.append(" AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ?)");
+                String searchPattern = "%" + keyword + "%";
+                params.add(searchPattern);
+                params.add(searchPattern);
+                params.add(searchPattern);
+            }
+            if (roleId != null) {
+                sql.append(" AND role_id = ?");
+                params.add(roleId);
+            }
+            if (status != null && !status.trim().isEmpty()) {
+                sql.append(" AND status = ?");
+                params.add(status);
+            }
+            sql.append(" ORDER BY id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+            params.add(offset);
+            params.add(limit);
+
+            stm = connection.prepareStatement(sql.toString());
+            for (Object param : params) {
+                if (param instanceof String) {
+                    stm.setString(paramIndex++, (String) param);
+                } else if (param instanceof Long) {
+                    stm.setLong(paramIndex++, (Long) param);
+                } else if (param instanceof Integer) {
+                    stm.setInt(paramIndex++, (Integer) param);
+                }
+            }
+
+            rs = stm.executeQuery();
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+        } catch (Exception e) {
+            System.out.println("UserDAO.search: " + e.getMessage());
+        }
+        return users;
+    }
+
+    public int countByRole(long roleId) {
+        try {
+            String sql = "SELECT COUNT(*) FROM [User] WHERE role_id = ?";
+            stm = connection.prepareStatement(sql);
+            stm.setLong(1, roleId);
+            rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("UserDAO.countByRole: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    private User mapResultSetToUser(ResultSet rs) throws Exception {
+        User u = new User();
+        u.setId(rs.getLong("id"));
+        u.setEmail(rs.getString("email"));
+        u.setPasswordHash(rs.getString("password_hash"));
+        u.setFullName(rs.getString("full_name"));
+        u.setPhone(rs.getString("phone"));
+        u.setAddress(rs.getString("address"));
+        u.setStatus(rs.getString("status"));
+        u.setWalletBalance(rs.getBigDecimal("wallet_balance"));
+        u.setRoleId(rs.getLong("role_id"));
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) {
+            u.setCreatedAt(createdAt.toLocalDateTime());
+        }
+        Timestamp updatedAt = rs.getTimestamp("updated_at");
+        if (updatedAt != null) {
+            u.setUpdatedAt(updatedAt.toLocalDateTime());
+        }
+        return u;
+    }
 }

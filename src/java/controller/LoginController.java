@@ -73,7 +73,23 @@ public class LoginController extends HttpServlet {
 
         //gửi thông tin user lên session
         request.getSession().setAttribute("user", user);
-        response.sendRedirect(request.getContextPath() + "/home");
+        
+        // Redirect based on role
+        dao.RoleDAO roleDAO = new dao.RoleDAO();
+        model.Role role = roleDAO.findById(user.getRoleId());
+        if (role != null) {
+            String roleName = role.getName();
+            if ("ADMIN".equals(roleName)) {
+                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+            } else if ("STAFF".equals(roleName)) {
+                response.sendRedirect(request.getContextPath() + "/staff");
+            } else {
+                // CUSTOMER or default
+                response.sendRedirect(request.getContextPath() + "/customer/home");
+            }
+        } else {
+            response.sendRedirect(request.getContextPath() + "/home");
+        }
     }
 
 }
