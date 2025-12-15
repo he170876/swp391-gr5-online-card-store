@@ -13,7 +13,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import java.util.List;
 import model.User;
+import dao.CustomerDAO;
+import model.Product;
 
 /**
  *
@@ -30,7 +33,11 @@ public class HomePageController extends HttpServlet {
 
         //chưa đăng nhập
         if (logged.isEmpty()) {
+            CustomerDAO dao = new CustomerDAO();
+            List<Product> featured = dao.getActiveProducts(6);
+            request.setAttribute("featuredProducts", featured);
             request.getRequestDispatcher("homepage.jsp").forward(request, response);
+            return;
         }
 
         //lấy lỗi
@@ -41,11 +48,11 @@ public class HomePageController extends HttpServlet {
 
         switch ((int) logged.get().getRoleId()) {
             case 3 ->
-                response.sendRedirect(request.getContextPath() + "homepage.jsp" + error);
+                response.sendRedirect(request.getContextPath() + "/customer/home" + error);
             case 2 ->
-                response.sendRedirect(request.getContextPath() + "staff.jsp" + error);
+                response.sendRedirect(request.getContextPath() + "/staff.jsp" + error);
             case 1 ->
-                response.sendRedirect(request.getContextPath() + "admin.jsp" + error);
+                response.sendRedirect(request.getContextPath() + "/admin.jsp" + error);
         }
     }
 

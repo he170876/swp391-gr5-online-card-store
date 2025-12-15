@@ -10,6 +10,7 @@ import java.io.IOException;
 import model.User;
 
 @WebFilter(urlPatterns = {
+    "/customer/*"
 })
 public class OnlyCustomerFilter extends HttpFilter {
 
