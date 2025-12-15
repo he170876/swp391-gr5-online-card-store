@@ -5,6 +5,9 @@ public class Provider {
     private String name;
     private String contactInfo;
     private String status;
+    
+    // Computed fields (for display)
+    private int productCount;    // COUNT of related products
 
     public Provider() {}
 
@@ -28,6 +31,9 @@ public class Provider {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    
+    public int getProductCount() { return productCount; }
+    public void setProductCount(int productCount) { this.productCount = productCount; }
 
     @Override
     public String toString() {

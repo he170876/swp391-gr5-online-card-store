@@ -105,12 +105,12 @@
             <i class="fa fa-shield-halved"></i> Vai trò
         </a>
 
-        <a href="${pageContext.request.contextPath}/admin/reports" class="${active=='reports'?'active':''}">
-            <i class="fa fa-chart-pie"></i> Báo cáo
-        </a>
-
         <a href="${pageContext.request.contextPath}/admin/config" class="${active=='config'?'active':''}">
             <i class="fa fa-gear"></i> Cấu hình hệ thống
+        </a>
+
+        <a href="${pageContext.request.contextPath}/admin/change-password" class="${active=='change-password'?'active':''}">
+            <i class="fa fa-key"></i> Đổi mật khẩu
         </a>
 
         <a href="${pageContext.request.contextPath}/logout">
