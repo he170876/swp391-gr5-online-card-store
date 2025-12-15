@@ -22,12 +22,11 @@ GO
 -------------------------------------------------------------
 IF OBJECT_ID('WalletTransaction') IS NOT NULL DROP TABLE WalletTransaction;
 IF OBJECT_ID('[Order]') IS NOT NULL DROP TABLE [Order];
-IF OBJECT_ID('ProductLog') IS NOT NULL DROP TABLE ProductLog;
 IF OBJECT_ID('CardInfo') IS NOT NULL DROP TABLE CardInfo;
+IF OBJECT_ID('ProductLog') IS NOT NULL DROP TABLE ProductLog;
 IF OBJECT_ID('Product') IS NOT NULL DROP TABLE Product;
 IF OBJECT_ID('Provider') IS NOT NULL DROP TABLE Provider;
 IF OBJECT_ID('Category') IS NOT NULL DROP TABLE Category;
-IF OBJECT_ID('UserOTP') IS NOT NULL DROP TABLE UserOTP;
 IF OBJECT_ID('[User]') IS NOT NULL DROP TABLE [User];
 IF OBJECT_ID('Role') IS NOT NULL DROP TABLE Role;
 GO
@@ -56,17 +55,6 @@ CREATE TABLE [User] (
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES Role(id)
-);
-GO
-
-CREATE TABLE UserOTP (
-    user_id BIGINT PRIMARY KEY,  -- mỗi user chỉ có 1 record
-    otp_code VARCHAR(10) NOT NULL,
-    otp_created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    send_count INT NOT NULL DEFAULT 0,
-    last_send DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-
-    CONSTRAINT fk_userotp_user FOREIGN KEY (user_id) REFERENCES [User](id)
 );
 GO
 

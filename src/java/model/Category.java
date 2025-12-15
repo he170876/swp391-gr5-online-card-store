@@ -5,9 +5,6 @@ public class Category {
     private String name;
     private String description;
     private String status;
-    
-    // Computed fields (for display)
-    private int productCount;
 
     public Category() {}
 
@@ -31,9 +28,6 @@ public class Category {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-    
-    public int getProductCount() { return productCount; }
-    public void setProductCount(int productCount) { this.productCount = productCount; }
 
     @Override
     public String toString() {

@@ -42,15 +42,15 @@ public class DBContext {
         if (dbContext.connection != null) {
             try {
                 if (!dbContext.connection.isClosed()) {
-                    System.out.println("Kết nối tới database OCS thành công!");
+                    System.out.println("Kết nối tới database OLTS thành công!");
                 } else {
-                    System.out.println("Kết nối tới database OCS bị đóng.");
+                    System.out.println("Kết nối tới database OLTS bị đóng.");
                 }
             } catch (Exception e) {
                 System.out.println("Lỗi kiểm tra kết nối: " + e.getMessage());
             }
         } else {
-            System.out.println("Không thể tạo kết nối tới database OCS.");
+            System.out.println("Không thể tạo kết nối tới database OLTS.");
         }
     }
 }

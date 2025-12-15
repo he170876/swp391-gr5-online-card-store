@@ -31,7 +31,6 @@ public class HomePageController extends HttpServlet {
         //chưa đăng nhập
         if (logged.isEmpty()) {
             request.getRequestDispatcher("homepage.jsp").forward(request, response);
-            return;
         }
 
         //lấy lỗi
