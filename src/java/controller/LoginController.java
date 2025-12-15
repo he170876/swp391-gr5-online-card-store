@@ -4,6 +4,7 @@
  */
 package controller;
 
+import controller.AdminConfigController;
 import dao.UserDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -84,6 +85,15 @@ public class LoginController extends HttpServlet {
 
             String msg = URLEncoder.encode("Đã đăng ký thành công! Vui lòng kiểm tra email để nhập OTP.", "UTF-8");
             response.sendRedirect(request.getContextPath() + "/registerVerifyOTP?msg=" + msg);
+            return;
+        }
+
+        // Check maintenance mode
+        boolean maintenanceMode = AdminConfigController.isMaintenanceMode();
+        if (maintenanceMode && user.getRoleId() != 1) {
+            // Only admin can login during maintenance
+            request.setAttribute("error", "Hệ thống đang bảo trì. Chỉ quản trị viên mới có thể đăng nhập.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
             return;
         }
 

@@ -40,6 +40,12 @@
                                 <div class="alert alert-danger" role="alert">${error}</div>
                             </c:if>
 
+                            <c:if test="${not empty param.maintenance}">
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fas fa-exclamation-triangle"></i> Hệ thống đang bảo trì. Chỉ quản trị viên mới có thể đăng nhập.
+                                </div>
+                            </c:if>
+
                             <form action="${pageContext.request.contextPath}/login" method="post" class="form-login-wrapper">
                                 <c:if test="${not empty _csrf}">
                                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
