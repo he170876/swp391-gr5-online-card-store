@@ -37,22 +37,8 @@ public class UserOTPDAO extends DBContext {
             }
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.getByUserId: " + e.getMessage());
-        } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("UserOTPDAO.getByUserId: " + e.getMessage());
-            }
-            try {
-                if (stm != null) {
-                    stm.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("UserOTPDAO.getByUserId: " + e.getMessage());
-            }
         }
+
         return null;
     }
 
@@ -73,15 +59,8 @@ public class UserOTPDAO extends DBContext {
             stm.executeUpdate();
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.insertOrUpdate: " + e.getMessage());
-        } finally {
-            try {
-                if (stm != null) {
-                    stm.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("UserOTPDAO.insertOrUpdate: " + e.getMessage());
-            }
         }
+
     }
 
     public void deleteOTP(long userId) {
@@ -92,14 +71,6 @@ public class UserOTPDAO extends DBContext {
             stm.executeUpdate();
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.deleteOTP: " + e.getMessage());
-        } finally {
-            try {
-                if (stm != null) {
-                    stm.close();
-                }
-            } catch (SQLException e) {
-                System.out.println("UserOTPDAO.deleteOTP: " + e.getMessage());
-            }
         }
     }
 

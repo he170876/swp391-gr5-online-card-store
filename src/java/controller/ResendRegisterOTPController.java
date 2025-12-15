@@ -106,8 +106,7 @@ public class ResendRegisterOTPController extends HttpServlet {
                 }
 
                 // Đủ 30 phút rồi → reset
-                otpDAO.resetSendCount(user.getId());
-                otpDAO.resetLastSent(user.getId());
+                otpDAO.deleteOTP(user.getId());
             }
 
         }

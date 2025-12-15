@@ -5,7 +5,6 @@
 package dao;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,14 +16,6 @@ import util.DBContext;
  * @author hades
  */
 public class UserDAO extends DBContext {
-
-    public UserDAO() {
-        super();
-    }
-
-    public UserDAO(Connection connection) {
-        this.connection = connection;
-    }
 
     private User map(ResultSet rs) throws SQLException {
         User u = new User();
