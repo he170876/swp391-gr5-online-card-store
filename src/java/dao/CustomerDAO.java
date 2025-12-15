@@ -604,7 +604,7 @@ public class CustomerDAO extends DBContext {
                 return result;
             }
 
-            UserDAO userDAO = new UserDAO(connection);
+            UserDAO userDAO = new UserDAO();
             User user = userDAO.getUserById(userId);
             if (user == null) {
                 result.setMessage("Không tìm thấy người dùng.");

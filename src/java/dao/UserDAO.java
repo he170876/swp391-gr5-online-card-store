@@ -5,9 +5,12 @@
 package dao;
 
 import java.math.BigDecimal;
+import java.security.Timestamp;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import model.User;
 import util.DBContext;
 
@@ -122,7 +125,7 @@ public class UserDAO extends DBContext {
         }
         return false;
     }
-  
+
     public User findById(long id) {
         try {
             String sql = "SELECT id, email, password_hash, full_name, phone, address, status, wallet_balance, role_id, created_at, updated_at FROM [User] WHERE id = ?";
@@ -313,7 +316,7 @@ public class UserDAO extends DBContext {
         }
         return 0;
     }
-    
+
     public int countSearch(String keyword, Long roleId, String status) {
         try {
             StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM [User] WHERE 1=1");
@@ -366,11 +369,11 @@ public class UserDAO extends DBContext {
         u.setStatus(rs.getString("status"));
         u.setWalletBalance(rs.getBigDecimal("wallet_balance"));
         u.setRoleId(rs.getLong("role_id"));
-        Timestamp createdAt = rs.getTimestamp("created_at");
+        java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             u.setCreatedAt(createdAt.toLocalDateTime());
         }
-        Timestamp updatedAt = rs.getTimestamp("updated_at");
+        java.sql.Timestamp updatedAt = rs.getTimestamp("updated_at");
         if (updatedAt != null) {
             u.setUpdatedAt(updatedAt.toLocalDateTime());
         }
