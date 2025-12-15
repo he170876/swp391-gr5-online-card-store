@@ -1,0 +1,85 @@
+<%-- 
+    Document   : staff-category-edit
+    Description: Edit category page for staff
+--%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h4>Sửa danh mục</h4>
+        <h6>Cập nhật thông tin danh mục</h6>
+    </div>
+    <a href="${pageContext.request.contextPath}/staff/category" class="btn btn-outline-secondary">
+        <i class="fa fa-arrow-left me-2"></i>Quay lại
+    </a>
+</div>
+
+<!-- Form Card -->
+<div class="card">
+    <div class="card-body">
+        <form action="${pageContext.request.contextPath}/staff/category/edit" method="post" id="categoryForm">
+            <input type="hidden" name="id" value="${formDTO.id}">
+            
+            <!-- Basic Information -->
+            <h5 class="mb-3"><i class="fa fa-info-circle me-2"></i>Thông tin danh mục</h5>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control ${not empty errors.name ? 'is-invalid' : ''}" 
+                           name="name" value="${formDTO.name}" placeholder="Nhập tên danh mục" maxlength="100" required>
+                    <c:if test="${not empty errors.name}">
+                        <div class="invalid-feedback">${errors.name}</div>
+                    </c:if>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Trạng thái <span class="text-danger">*</span></label>
+                    <div class="mt-2">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="status" id="statusActive" 
+                                   value="ACTIVE" ${formDTO.status != 'INACTIVE' ? 'checked' : ''}>
+                            <label class="form-check-label" for="statusActive">
+                                <span class="badge bg-success">Hoạt động</span>
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="status" id="statusInactive" 
+                                   value="INACTIVE" ${formDTO.status == 'INACTIVE' ? 'checked' : ''}>
+                            <label class="form-check-label" for="statusInactive">
+                                <span class="badge bg-danger">Ngừng hoạt động</span>
+                            </label>
+                        </div>
+                    </div>
+                    <c:if test="${not empty errors.status}">
+                        <div class="text-danger small mt-1">${errors.status}</div>
+                    </c:if>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <label class="form-label">Mô tả</label>
+                    <textarea class="form-control ${not empty errors.description ? 'is-invalid' : ''}" 
+                              name="description" rows="3" placeholder="Nhập mô tả danh mục" maxlength="255">${formDTO.description}</textarea>
+                    <c:if test="${not empty errors.description}">
+                        <div class="invalid-feedback">${errors.description}</div>
+                    </c:if>
+                    <div class="form-text">Tối đa 255 ký tự</div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Submit Buttons -->
+            <div class="d-flex justify-content-end gap-2">
+                <a href="${pageContext.request.contextPath}/staff/category" class="btn btn-outline-secondary">
+                    <i class="fa fa-times me-1"></i> Hủy
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa fa-save me-1"></i> Cập nhật danh mục
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -10,7 +10,8 @@ import java.io.IOException;
 import model.User;
 
 @WebFilter(urlPatterns = {
-    "/staff.jsp"
+    "/staff.jsp",
+    "/staff/*"
 })
 public class OnlyStaffFilter extends HttpFilter {
 
