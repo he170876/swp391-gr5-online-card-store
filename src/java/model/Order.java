@@ -12,6 +12,10 @@ public class Order {
     private double finalPrice;
     private String status;
     private String receiverEmail;
+    
+    // Computed fields for display
+    private String productName;
+    private String cardCode;
 
     public Order() {}
 
@@ -57,6 +61,22 @@ public class Order {
 
     public String getReceiverEmail() { return receiverEmail; }
     public void setReceiverEmail(String receiverEmail) { this.receiverEmail = receiverEmail; }
+    
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getCardCode() {
+        return cardCode;
+    }
+
+    public void setCardCode(String cardCode) {
+        this.cardCode = cardCode;
+    }
 
     @Override
     public String toString() {

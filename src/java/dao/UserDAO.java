@@ -8,9 +8,6 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import model.User;
 import util.DBContext;
 
@@ -125,7 +122,7 @@ public class UserDAO extends DBContext {
         }
         return false;
     }
-
+  
     public User findById(long id) {
         try {
             String sql = "SELECT id, email, password_hash, full_name, phone, address, status, wallet_balance, role_id, created_at, updated_at FROM [User] WHERE id = ?";
@@ -379,4 +376,5 @@ public class UserDAO extends DBContext {
         }
         return u;
     }
+
 }

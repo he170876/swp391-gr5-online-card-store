@@ -38,6 +38,7 @@ public class UserOTPDAO extends DBContext {
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.getByUserId: " + e.getMessage());
         }
+
         return null;
     }
 
@@ -59,14 +60,15 @@ public class UserOTPDAO extends DBContext {
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.insertOrUpdate: " + e.getMessage());
         }
+
     }
 
     public void deleteOTP(long userId) {
         String sql = "DELETE FROM UserOTP WHERE user_id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setLong(1, userId);
-            ps.executeUpdate();
+        try {
+            stm = connection.prepareStatement(sql);
+            stm.setLong(1, userId);
+            stm.executeUpdate();
         } catch (SQLException e) {
             System.out.println("UserOTPDAO.deleteOTP: " + e.getMessage());
         }
