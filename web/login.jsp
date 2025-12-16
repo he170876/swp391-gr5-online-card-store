@@ -82,6 +82,15 @@
                                 <h4>Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register" class="hover-a">Đăng ký</a></h4>
                             </div>
 
+                            <!-- Back to Home -->
+                            <div class="signinform text-center mt-3">
+                                <h4>
+                                    <a href="${pageContext.request.contextPath}/" class="hover-a">
+                                        <i class="fas fa-arrow-left"></i> Quay về trang chủ
+                                    </a>
+                                </h4>
+                            </div>
+
                         </div>
                     </div>
 

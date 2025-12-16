@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller;
+package controller.authentication;
 
 import dao.UserDAO;
 import java.io.IOException;
@@ -26,6 +26,12 @@ import service.SendOTPService;
 public class ResendRegisterOTPController extends HttpServlet {
 
     @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doPost(request, response);
+    }
+
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
@@ -37,6 +43,11 @@ public class ResendRegisterOTPController extends HttpServlet {
             String error = URLEncoder.encode("Không tìm thấy Email! Vui lòng kiểm tra lại!", "UTF-8");
             response.sendRedirect("/login?error=" + error);
             return;
+        }
+
+        String msgs = request.getParameter("msgs");
+        if (msgs != null) {
+            request.setAttribute("msgs", msgs);
         }
 
         String registerEmail = (String) session.getAttribute("registerEmail");

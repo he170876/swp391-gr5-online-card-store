@@ -4,7 +4,7 @@
  */
 package util;
 
-import java.security.MessageDigest;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  *
@@ -12,17 +12,18 @@ import java.security.MessageDigest;
  */
 public class PasswordUtil {
 
-    public static String hash(String input) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] b = md.digest(input.getBytes("UTF-8"));
-            StringBuilder sb = new StringBuilder();
-            for (byte x : b) {
-                sb.append(String.format("%02x", x));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            return null;
+    public static String hash(String plainPassword) {
+        return BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
+    }
+
+    public static boolean check(String plainPassword, String hashedPassword) {
+        if (plainPassword == null || hashedPassword == null) {
+            return false;
         }
+        return BCrypt.checkpw(plainPassword, hashedPassword);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(hash("123456"));
     }
 }

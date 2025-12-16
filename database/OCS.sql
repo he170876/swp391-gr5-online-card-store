@@ -173,13 +173,13 @@ INSERT INTO Role (name, description) VALUES
 INSERT INTO [User] (email, password_hash, full_name, phone, address, status, wallet_balance, role_id)
 VALUES
 ('admin@ocs.com', 
- '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
+ '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
  'Administrator', '0900000001', 'System HQ', 'ACTIVE', 0, 1),
 
 ('staff@ocs.com',
- '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
+ '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
  'System Staff', '0900000002', 'Office 1', 'ACTIVE', 0, 2),
 
 ('customer@ocs.com',
- '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
+ '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
  'Sample Customer', '0900000003', 'District 1', 'ACTIVE', 50000, 3);

@@ -43,7 +43,10 @@
                                 </h5>
                             </div>
 
-                            <!-- Hiển thị msg --
+                            <!-- Hiển thị msg -->
+                            <c:if test="${not empty msgs}">
+                                <div class="alert alert-success">${msgs}</div>
+                            </c:if>
                             <c:if test="${not empty msg}">
                                 <div class="alert alert-success">${msg}</div>
                             </c:if>
@@ -82,6 +85,15 @@
 
                             <div class="signinform text-center">
                                 <h4>Already a user? <a href="${pageContext.request.contextPath}/login" class="hover-a">Sign In</a></h4>
+                            </div>
+
+                            <!-- Back to Home -->
+                            <div class="signinform text-center mt-3">
+                                <h4>
+                                    <a href="${pageContext.request.contextPath}/" class="hover-a">
+                                        <i class="fas fa-arrow-left"></i> Quay về trang chủ
+                                    </a>
+                                </h4>
                             </div>
 
                         </div>

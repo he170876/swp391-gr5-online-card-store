@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller;
+package controller.authentication;
 
 import dao.UserDAO;
 import java.io.IOException;
@@ -24,6 +24,12 @@ import service.SendOTPService;
  */
 @WebServlet(name = "ResendForgotPassOTPController", urlPatterns = {"/resendForgotPassOtp"})
 public class ResendForgotPassOTPController extends HttpServlet {
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doPost(request, response);
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

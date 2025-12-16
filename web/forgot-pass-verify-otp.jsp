@@ -87,9 +87,10 @@
                                 <!-- New password -->
                                 <div class="form-login">
                                     <label>Mật khẩu mới</label>
-                                    <div class="form-addons">
+                                    <div class="pass-group">
                                         <input type="password"
                                                name="newPassword"
+                                               class="pass-input"
                                                placeholder="Nhập mật khẩu mới"
                                                required>
                                         <span class="fas toggle-password fa-eye-slash" role="button" aria-label="Toggle password visibility"></span>
@@ -99,9 +100,10 @@
                                 <!-- Confirm password -->
                                 <div class="form-login">
                                     <label>Xác nhận mật khẩu</label>
-                                    <div class="form-addons">
+                                    <div class="pass-group">
                                         <input type="password"
                                                name="confirmPassword"
+                                               class="pass-input"
                                                placeholder="Nhập lại mật khẩu mới"
                                                required>                                  
                                     </div>

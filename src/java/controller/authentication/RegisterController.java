@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller;
+package controller.authentication;
 
 import dao.UserDAO;
 import java.io.IOException;
@@ -51,35 +51,51 @@ public class RegisterController extends HttpServlet {
         Map<String, String> errors = new HashMap<>();
 
         // ===== VALIDATE EMAIL =====
-        if (email == null || email.isEmpty()) {
+        if (email == null || email.trim().isEmpty()) {
             errors.put("email", "Email không được để trống");
+        } else if (email.length() < 5 || email.length() > 255) {
+            errors.put("email", "Email phải có độ dài từ 5 đến 255 ký tự");
         } else if (!v.isValidEmail(email)) {
-            errors.put("email", "Định dạng email không hợp lệ");
+            errors.put("email", "Email không đúng định dạng (vd: example@gmail.com)");
         }
 
         // ===== VALIDATE PASSWORD =====
         if (password == null || password.isEmpty()) {
             errors.put("password", "Mật khẩu không được để trống");
+        } else if (password.length() < 8 || password.length() > 64) {
+            errors.put("password", "Mật khẩu phải có từ 8 đến 64 ký tự");
         } else if (!v.isValidPassword(password, confirmPassword)) {
             errors.put("password",
-                    "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số, ký tự đặc biệt và trùng khớp xác nhận");
+                    "Mật khẩu phải gồm chữ hoa, chữ thường, số, ký tự đặc biệt và trùng khớp xác nhận");
         }
 
         // ===== VALIDATE FULL NAME =====
-        if (fullName == null || fullName.isEmpty()) {
+        if (fullName == null || fullName.trim().isEmpty()) {
             errors.put("fullName", "Họ và tên không được để trống");
+        } else if (fullName.length() < 2 || fullName.length() > 100) {
+            errors.put("fullName", "Họ và tên phải có độ dài từ 2 đến 100 ký tự");
         } else if (!v.isValidFullName(fullName)) {
-            errors.put("fullName", "Họ và tên không hợp lệ. Chỉ chứa chữ cái và khoảng trắng");
+            errors.put("fullName",
+                    "Họ và tên chỉ được chứa chữ cái và khoảng trắng, không có khoảng trắng kép");
         }
 
         // ===== VALIDATE PHONE =====
-        if (phone != null && !phone.isEmpty() && !v.isValidPhoneNumber(phone)) {
-            errors.put("phone", "Số điện thoại không hợp lệ");
+        if (phone != null && !phone.trim().isEmpty()) {
+            if (phone.length() < 10 || phone.length() > 15) {
+                errors.put("phone", "Số điện thoại phải có từ 10 đến 15 chữ số");
+            } else if (!v.isValidPhoneNumber(phone)) {
+                errors.put("phone", "Số điện thoại chỉ được chứa số và có thể bắt đầu bằng dấu +");
+            }
         }
 
         // ===== VALIDATE ADDRESS =====
-        if (address != null && !address.isEmpty() && !v.isValidAddress(address)) {
-            errors.put("address", "Địa chỉ không hợp lệ");
+        if (address != null && !address.trim().isEmpty()) {
+            if (address.length() < 5 || address.length() > 255) {
+                errors.put("address", "Địa chỉ phải có độ dài từ 5 đến 255 ký tự");
+            } else if (!v.isValidAddress(address)) {
+                errors.put("address",
+                        "Địa chỉ chỉ được chứa chữ, số, dấu phẩy, dấu chấm và khoảng trắng");
+            }
         }
 
         UserDAO dao = new UserDAO();
@@ -88,7 +104,7 @@ public class RegisterController extends HttpServlet {
         if (!errors.containsKey("email")) {
             User existing = dao.getUserByEmail(email);
             if (existing != null) {
-                errors.put("email", "Email đã tồn tại");
+                errors.put("email", "Email đã tồn tại!");
             }
         }
 
