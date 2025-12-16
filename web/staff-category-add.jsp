@@ -32,6 +32,7 @@
                         <div class="invalid-feedback">${errors.name}</div>
                     </c:if>
                 </div>
+                   
                 <div class="col-md-6">
                     <label class="form-label">Trạng thái <span class="text-danger">*</span></label>
                     <div class="mt-2">

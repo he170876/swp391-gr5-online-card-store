@@ -17,6 +17,10 @@ public class ProductFormDTO {
     private Double sellPrice;
     private Double discountPercent;
     private String status;
+    private Integer quantity;
+    public Integer getQuantity() { return quantity; }
+public void setQuantity(Integer quantity) { this.quantity = quantity; }
+
     
     // Validation errors
     private Map<String, String> errors = new HashMap<>();

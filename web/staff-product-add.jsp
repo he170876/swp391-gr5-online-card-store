@@ -121,6 +121,25 @@
             </div>
 
             <hr class="my-4">
+<!-- Quantity Information -->
+<h5 class="mb-3"><i class="fa fa-cubes me-2"></i>Số lượng</h5>
+<div class="row mb-4">
+    <div class="col-md-4">
+        <label class="form-label">Số lượng ban đầu <span class="text-danger">*</span></label>
+        <input type="number"
+               class="form-control ${not empty errors.quantity ? 'is-invalid' : ''}"
+               name="quantity"
+               value="${formDTO.quantity}"
+               min="0"
+               placeholder="0">
+        <c:if test="${not empty errors.quantity}">
+            <div class="invalid-feedback">${errors.quantity}</div>
+        </c:if>
+        <div class="form-text">Số lượng tồn kho ban đầu</div>
+    </div>
+</div>
+
+<hr class="my-4">
 
             <!-- Status -->
             <h5 class="mb-3"><i class="fa fa-toggle-on me-2"></i>Trạng thái</h5>

@@ -76,7 +76,9 @@ public class ProductAddController extends HttpServlet {
         product.setCostPrice(formDTO.getCostPrice());
         product.setSellPrice(formDTO.getSellPrice());
         product.setDiscountPercent(formDTO.getDiscountPercent() != null ? formDTO.getDiscountPercent() : 0);
-        product.setQuantity(0); // Quantity managed by CardInfo
+//        product.setQuantity(0); // Quantity managed by CardInfo
+product.setQuantity(formDTO.getQuantity());
+
         product.setStatus(formDTO.getStatus());
 
         ProductDAO dao = new ProductDAO();
@@ -128,6 +130,12 @@ public class ProductAddController extends HttpServlet {
             dto.setDiscountPercent(0.0);
         }
 
+        try {
+    dto.setQuantity(Integer.parseInt(request.getParameter("quantity")));
+} catch (Exception e) {
+    dto.setQuantity(null);
+}
+
         dto.setStatus(Optional.ofNullable(request.getParameter("status")).orElse("ACTIVE"));
 
         return dto;
@@ -135,6 +143,7 @@ public class ProductAddController extends HttpServlet {
 
     private Map<String, String> validateForm(ProductFormDTO dto, Long excludeId) {
         Map<String, String> errors = new HashMap<>();
+
 
         // Category validation
         if (dto.getCategoryId() == null) {
@@ -216,7 +225,12 @@ public class ProductAddController extends HttpServlet {
         } else if (!dto.getStatus().equals("ACTIVE") && !dto.getStatus().equals("INACTIVE")) {
             errors.put("status", "Trạng thái không hợp lệ");
         }
-
+// Quantity validation
+if (dto.getQuantity() == null) {
+    errors.put("quantity", "Số lượng không được để trống");
+} else if (dto.getQuantity() < 0) {
+    errors.put("quantity", "Số lượng không được nhỏ hơn 0");
+}
         return errors;
     }
 }
