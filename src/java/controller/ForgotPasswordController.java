@@ -5,6 +5,7 @@
 package controller;
 
 import dao.UserDAO;
+import dao.UserOTPDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -14,7 +15,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.net.URLEncoder;
+import java.time.LocalDateTime;
 import model.User;
+import model.UserOTP;
+import service.EmailService;
+import util.OTPGenerator;
 
 /**
  *
@@ -49,7 +54,7 @@ public class ForgotPasswordController extends HttpServlet {
         //lỗi khi lấy thông tin người dùng
         User user = userDao.getUserByEmail(email);
         if (user == null) {
-            request.setAttribute("error", "Không thể tải thông tin người dùng.");
+            request.setAttribute("error", "Email không tồn tại trong hệ thống.");
             request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
             return;
         }
@@ -61,24 +66,89 @@ public class ForgotPasswordController extends HttpServlet {
         }
 
         if (user.getStatus().equals("INACTIVE")) {
-            // Lưu email để verify OTP
-            request.getSession().setAttribute("registerEmail", email);
-
-            String msg = URLEncoder.encode("Đã đăng ký thành công! Vui lòng kiểm tra email để nhập OTP.", "UTF-8");
-            response.sendRedirect(request.getContextPath() + "/register?msg=" + msg);
+            request.setAttribute("error", "Tài khoản chưa được kích hoạt.");
+            request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
             return;
         }
 
         // ===== SAVE EMAIL FOR OTP VERIFY =====
         HttpSession session = request.getSession();
         session.setAttribute("forgotPasswordEmail", email);
+        session.setAttribute("forgotPasswordUserId", user.getId());
 
-        String msg = URLEncoder.encode(
-                "Mã OTP đã được gửi!",
-                "UTF-8"
-        );
+        UserOTPDAO otpDAO = new UserOTPDAO();
+        UserOTP lastOtp = otpDAO.getByUserId(user.getId());
 
-        response.sendRedirect(request.getContextPath() + "/forgotPasswordOTP?msg=" + msg);
+        if (lastOtp != null) {
+            LocalDateTime now = LocalDateTime.now();
+
+            // --- Delay 60 giây ---
+            if (lastOtp.getLastSend().plusSeconds(60).isAfter(now)) {
+                request.setAttribute("error", "Vui lòng đợi 60 giây trước khi gửi lại OTP!");
+                request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+                return;
+            }
+
+            // --- Kiểm tra gửi quá 5 lần ---
+            if (lastOtp.getSendCount() >= 5) {
+
+                LocalDateTime blockUntil = lastOtp.getLastSend().plusMinutes(30);
+
+                // Nếu CHƯA đủ 30 phút → chặn và hiển thị thời gian còn lại
+                if (blockUntil.isAfter(now)) {
+
+                    long minutesLeft = java.time.Duration.between(now, blockUntil).toMinutes();
+                    long secondsLeft = java.time.Duration.between(now, blockUntil).getSeconds() % 60;
+
+                    String error = "Bạn đã gửi quá nhiều lần! "
+                            + "Vui lòng đợi " + minutesLeft + " phút " + secondsLeft + " giây trước khi gửi lại OTP!";
+
+                    request.setAttribute("error", error);
+                    request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+                    return;
+                }
+
+                // Đủ 30 phút rồi → reset
+                otpDAO.deleteOTP(user.getId());
+            }
+
+        }
+
+        OTPGenerator otpGen = new OTPGenerator();
+        String otp = otpGen.getOtpCode();
+
+        UserOTP userOTP = new UserOTP();
+        userOTP.setUserId(user.getId());
+        userOTP.setOtpCode(otp);
+
+        otpDAO.insertOrUpdate(userOTP);
+
+        // --- Gửi OTP qua email ---
+        try {
+            EmailService.sendEmail(
+                    user.getEmail(),
+                    "Xác minh tài khoản",
+                    "Mã OTP của bạn là: " + otp + "\nCó hiệu lực trong 5 phút."
+            );
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            String error = URLEncoder.encode("Không thể gửi OTP. Vui lòng thử lại!", "UTF-8");
+            response.sendRedirect("/forgotPassword?error=" + error);
+            return;
+        }
+
+        request.setAttribute("displayEmail", maskEmail(email));
+        request.setAttribute("msg", "Mã OTP đã được gửi!");
+        request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+
+    }
+
+    public String maskEmail(String email) {
+        int atIndex = email.indexOf("@");
+        if (atIndex <= 2) {
+            return "***" + email.substring(atIndex);
+        }
+        return email.substring(0, 2) + "****" + email.substring(atIndex);
     }
 
 }
