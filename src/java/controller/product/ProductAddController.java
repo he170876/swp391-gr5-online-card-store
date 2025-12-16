@@ -76,7 +76,7 @@ public class ProductAddController extends HttpServlet {
         product.setCostPrice(formDTO.getCostPrice());
         product.setSellPrice(formDTO.getSellPrice());
         product.setDiscountPercent(formDTO.getDiscountPercent() != null ? formDTO.getDiscountPercent() : 0);
-        product.setQuantity(0); // Quantity managed by CardInfo
+        product.setQuantity(formDTO.getQuantity() != null ? formDTO.getQuantity() : 0);
         product.setStatus(formDTO.getStatus());
 
         ProductDAO dao = new ProductDAO();
@@ -126,6 +126,12 @@ public class ProductAddController extends HttpServlet {
             dto.setDiscountPercent(Double.parseDouble(request.getParameter("discountPercent")));
         } catch (Exception e) {
             dto.setDiscountPercent(0.0);
+        }
+
+        try {
+            dto.setQuantity(Integer.parseInt(request.getParameter("quantity")));
+        } catch (Exception e) {
+            dto.setQuantity(0);
         }
 
         dto.setStatus(Optional.ofNullable(request.getParameter("status")).orElse("ACTIVE"));

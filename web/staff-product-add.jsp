@@ -93,7 +93,7 @@
             <!-- Pricing Information -->
             <h5 class="mb-3"><i class="fa fa-tags me-2"></i>Thông tin giá</h5>
             <div class="row mb-4">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">Giá gốc (VNĐ) <span class="text-danger">*</span></label>
                     <input type="number" class="form-control ${not empty errors.costPrice ? 'is-invalid' : ''}" 
                            name="costPrice" value="${formDTO.costPrice}" placeholder="0" min="0" step="1000" required>
@@ -101,7 +101,7 @@
                         <div class="invalid-feedback">${errors.costPrice}</div>
                     </c:if>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">Giá bán (VNĐ) <span class="text-danger">*</span></label>
                     <input type="number" class="form-control ${not empty errors.sellPrice ? 'is-invalid' : ''}" 
                            name="sellPrice" value="${formDTO.sellPrice}" placeholder="0" min="0" step="1000" required>
@@ -109,13 +109,22 @@
                         <div class="invalid-feedback">${errors.sellPrice}</div>
                     </c:if>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">Giảm giá (%)</label>
                     <input type="number" class="form-control ${not empty errors.discountPercent ? 'is-invalid' : ''}" 
                            name="discountPercent" value="${formDTO.discountPercent != null ? formDTO.discountPercent : 0}" 
                            placeholder="0" min="0" max="100" step="0.1">
                     <c:if test="${not empty errors.discountPercent}">
                         <div class="invalid-feedback">${errors.discountPercent}</div>
+                    </c:if>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Số lượng <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control ${not empty errors.quantity ? 'is-invalid' : ''}" 
+                           name="quantity" value="${formDTO.quantity != null ? formDTO.quantity : 0}" 
+                           placeholder="0" min="0" step="1" required>
+                    <c:if test="${not empty errors.quantity}">
+                        <div class="invalid-feedback">${errors.quantity}</div>
                     </c:if>
                 </div>
             </div>

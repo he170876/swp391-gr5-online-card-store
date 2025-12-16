@@ -16,6 +16,7 @@ public class ProductFormDTO {
     private Double costPrice;
     private Double sellPrice;
     private Double discountPercent;
+    private Integer quantity;
     private String status;
     
     // Validation errors
@@ -95,6 +96,14 @@ public class ProductFormDTO {
 
     public void setDiscountPercent(Double discountPercent) {
         this.discountPercent = discountPercent;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
     public String getStatus() {
