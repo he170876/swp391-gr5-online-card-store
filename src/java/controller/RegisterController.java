@@ -15,7 +15,9 @@ import jakarta.servlet.http.HttpSession;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import model.SendOTPResult;
 import model.User;
+import service.SendOTPService;
 import util.PasswordUtil;
 import util.Validation;
 
@@ -48,41 +50,49 @@ public class RegisterController extends HttpServlet {
         Validation v = new Validation();
         Map<String, String> errors = new HashMap<>();
 
+        // ===== VALIDATE EMAIL =====
         if (email == null || email.isEmpty()) {
-            errors.put("email", "Email is required");
+            errors.put("email", "Email không được để trống");
         } else if (!v.isValidEmail(email)) {
-            errors.put("email", "Email format is invalid");
+            errors.put("email", "Định dạng email không hợp lệ");
         }
 
+        // ===== VALIDATE PASSWORD =====
         if (password == null || password.isEmpty()) {
-            errors.put("password", "Password is required");
+            errors.put("password", "Mật khẩu không được để trống");
         } else if (!v.isValidPassword(password, confirmPassword)) {
-            errors.put("password", "Password must be at least 6 characters, contain lowercase, uppercase, digit and special character and match confirmation");
+            errors.put("password",
+                    "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số, ký tự đặc biệt và trùng khớp xác nhận");
         }
 
+        // ===== VALIDATE FULL NAME =====
         if (fullName == null || fullName.isEmpty()) {
-            errors.put("fullName", "Full name is required");
+            errors.put("fullName", "Họ và tên không được để trống");
         } else if (!v.isValidFullName(fullName)) {
-            errors.put("fullName", "Full name is invalid. Use letters and spaces, each word starts with uppercase");
+            errors.put("fullName", "Họ và tên không hợp lệ. Chỉ chứa chữ cái và khoảng trắng");
         }
 
+        // ===== VALIDATE PHONE =====
         if (phone != null && !phone.isEmpty() && !v.isValidPhoneNumber(phone)) {
-            errors.put("phone", "Phone number is invalid");
+            errors.put("phone", "Số điện thoại không hợp lệ");
         }
 
+        // ===== VALIDATE ADDRESS =====
         if (address != null && !address.isEmpty() && !v.isValidAddress(address)) {
-            errors.put("address", "Address is invalid");
+            errors.put("address", "Địa chỉ không hợp lệ");
         }
 
         UserDAO dao = new UserDAO();
 
+        // ===== CHECK EMAIL EXIST =====
         if (!errors.containsKey("email")) {
             User existing = dao.getUserByEmail(email);
             if (existing != null) {
-                errors.put("email", "Email already exists");
+                errors.put("email", "Email đã tồn tại");
             }
         }
 
+        // ===== RETURN FORM IF ERROR =====
         if (!errors.isEmpty()) {
             request.setAttribute("errors", errors);
             request.setAttribute("fullNameValue", fullName);
@@ -93,9 +103,10 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-        String hashedInput = PasswordUtil.hash(password);
-        if (hashedInput == null) {
-            errors.put("general", "Password hashing error");
+        // ===== HASH PASSWORD =====
+        String hashedPassword = PasswordUtil.hash(password);
+        if (hashedPassword == null) {
+            errors.put("general", "Lỗi mã hóa mật khẩu");
             request.setAttribute("errors", errors);
             request.setAttribute("fullNameValue", fullName);
             request.setAttribute("emailValue", email);
@@ -105,18 +116,19 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
+        // ===== CREATE USER =====
         User u = new User();
         u.setFullName(fullName);
         u.setEmail(email);
-        u.setPasswordHash(hashedInput);
+        u.setPasswordHash(hashedPassword);
         u.setPhone(phone);
         u.setAddress(address);
-        u.setRoleId(3);
-
+        u.setRoleId(3); // CUSTOMER
+        u.setStatus("INACTIVE");
         boolean inserted = dao.insertUser(u);
 
         if (!inserted) {
-            errors.put("general", "Cannot create account, please try again later");
+            errors.put("general", "Không thể tạo tài khoản, vui lòng thử lại sau");
             request.setAttribute("errors", errors);
             request.setAttribute("fullNameValue", fullName);
             request.setAttribute("emailValue", email);
@@ -126,13 +138,53 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUserByEmail(email);
+
+        if (user == null) {
+            String error = URLEncoder.encode("Không tìm thấy Người dùng! Vui lòng kiểm tra lại!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
+        if (user.getStatus().equals("LOCKED")) {
+            String error = URLEncoder.encode("Tài khoản đã bị khóa! Vui lòng liên hệ Admin!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
+        if (user.getStatus().equals("ACTIVE")) {
+            String error = URLEncoder.encode("Tài khoản đã xác thực! Vui lòng đăng nhập!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
+        // ===== SAVE EMAIL FOR OTP VERIFY =====
         HttpSession session = request.getSession();
+        session.setAttribute("registerEmail", user.getEmail());
 
-        // Lưu email để verify OTP
-        session.setAttribute("registerEmail", email);
+        // ===== SEND OTP USING SERVICE =====
+        SendOTPService otpService = new SendOTPService();
+        SendOTPResult result = otpService.sendRegisterOTP(user);
 
-        String msg = URLEncoder.encode("Đăng ký thành công! Vui lòng kiểm tra email để nhập OTP.", "UTF-8");
-        response.sendRedirect(request.getContextPath() + "/registerVerifyOTP?msg=" + msg);
+        if (!result.isSuccess()) {
+            request.setAttribute("error", result.getMessage());
+            request.getRequestDispatcher("register-verify-otp.jsp")
+                    .forward(request, response);
+            return;
+        }
 
+        request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
+        request.setAttribute("msg", result.getMessage());
+        request.getRequestDispatcher("register-verify-otp.jsp")
+                .forward(request, response);
+    }
+
+    public String maskEmail(String email) {
+        int atIndex = email.indexOf("@");
+        if (atIndex <= 2) {
+            return "***" + email.substring(atIndex);
+        }
+        return email.substring(0, 2) + "****" + email.substring(atIndex);
     }
 }

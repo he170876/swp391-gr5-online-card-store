@@ -1,25 +1,26 @@
 <%-- 
     Document   : forgot-password
-    Created on : Dec 13, 2025, 6:31:14 PM
+    Created on : Dec 13, 2025
     Author     : hades
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
         <title>Forgot Password - Online Card Store</title>
+
         <link rel="shortcut icon" type="image/x-icon" href="img/smalllogo.jpg">
         <link rel="stylesheet" href="assets/css/bootstrap.min.css">
         <link rel="stylesheet" href="assets/plugins/fontawesome/css/fontawesome.min.css">
         <link rel="stylesheet" href="assets/plugins/fontawesome/css/all.min.css">
         <link rel="stylesheet" href="assets/css/style.css">
     </head>
-    <body class="account-page">
 
+    <body class="account-page">
         <div class="main-wrapper">
             <div class="account-content">
                 <div class="login-wrapper">
@@ -28,14 +29,14 @@
 
                             <!-- Logo -->
                             <div class="login-logo" style="display:flex;align-items:center;gap:10px;">
-                                <img src="${pageContext.request.contextPath}/img/logo.jpg" alt="img" style="height:60px;">
+                                <img src="${pageContext.request.contextPath}/img/logo.jpg" alt="logo" style="height:60px;">
                                 <h2 style="margin:0;font-weight:600;">Online Card Store</h2>
                             </div>
 
                             <!-- Heading -->
                             <div class="login-userheading">
-                                <h3>Forgot Password</h3>
-                                <h4>Enter your email to receive OTP</h4>
+                                <h3>Quên mật khẩu</h3>
+                                <h4>Nhập email để nhận mã OTP</h4>
                             </div>
 
                             <!-- Message -->
@@ -47,6 +48,10 @@
                                 <div class="alert alert-danger">${error}</div>
                             </c:if>
 
+                            <c:if test="${not empty param.error}">
+                                <div class="alert alert-danger">${param.error}</div>
+                            </c:if>
+
                             <!-- Form -->
                             <form action="${pageContext.request.contextPath}/forgotPassword" method="post">
 
@@ -55,16 +60,16 @@
                                     <div class="form-addons">
                                         <input type="email"
                                                name="email"
-                                               placeholder="Enter your registered email"
+                                               placeholder="Nhập email đã đăng ký"
                                                value="<c:out value='${emailValue}'/>"
                                                required>
-                                        <img src="assets/img/icons/mail.svg" alt="img">
+                                        <img src="assets/img/icons/mail.svg" alt="icon">
                                     </div>
                                 </div>
 
                                 <div class="form-login">
                                     <button type="submit" class="btn btn-login">
-                                        Send OTP
+                                        Gửi mã OTP
                                     </button>
                                 </div>
 
@@ -73,9 +78,9 @@
                             <!-- Back to login -->
                             <div class="signinform text-center">
                                 <h4>
-                                    Remember your password?
+                                    Bạn đã nhớ mật khẩu?
                                     <a href="${pageContext.request.contextPath}/login" class="hover-a">
-                                        Sign In
+                                        Đăng nhập
                                     </a>
                                 </h4>
                             </div>
@@ -96,4 +101,3 @@
         <script src="assets/js/script.js"></script>
     </body>
 </html>
-

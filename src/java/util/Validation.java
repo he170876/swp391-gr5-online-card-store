@@ -40,16 +40,16 @@ public class Validation {
     }
 
     public boolean isValidFullName(String fullName) {
-        if (fullName == null || fullName.isEmpty()) {
+        if (fullName == null || fullName.trim().isEmpty()) {
             return false;
         }
 
-        // Kiểm tra fullname chỉ chứa chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt
-        if (!fullName.matches("^[a-zA-Z\\s]+$")) {
+        // Chỉ cho phép chữ cái (kể cả tiếng Việt có dấu) và khoảng trắng
+        if (!fullName.matches("^[\\p{L}\\s]+$")) {
             return false;
         }
 
-        // Kiểm tra fullname không chứa hai khoảng trắng liên tiếp
+        // Không cho phép có 2 khoảng trắng liên tiếp
         if (fullName.contains("  ")) {
             return false;
         }
@@ -82,8 +82,8 @@ public class Validation {
             return false;
         }
 
-        // Kiểm tra address chỉ chứa chữ cái, số, khoảng trắng, dấu phẩy và dấu chấm
-        if (!address.matches("^[a-zA-Z0-9\\s,\\.]+$")) {
+        // Chỉ cho phép chữ cái (kể cả tiếng Việt có dấu) và khoảng trắng
+        if (!address.matches("^[\\p{L}\\s]+$")) {
             return false;
         }
 
