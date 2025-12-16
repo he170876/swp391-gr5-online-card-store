@@ -80,7 +80,7 @@
                                                placeholder="Nhập mã OTP"
                                                maxlength="6"
                                                required>
-                                        <img src="assets/img/icons/key.svg" alt="icon">
+                                        <img src="assets/img/icons/mail.svg" alt="icon">
                                     </div>
                                 </div>
 
@@ -92,7 +92,7 @@
                                                name="newPassword"
                                                placeholder="Nhập mật khẩu mới"
                                                required>
-                                        <img src="assets/img/icons/lock.svg" alt="icon">
+                                        <span class="fas toggle-password fa-eye-slash" role="button" aria-label="Toggle password visibility"></span>
                                     </div>
                                 </div>
 
@@ -103,8 +103,7 @@
                                         <input type="password"
                                                name="confirmPassword"
                                                placeholder="Nhập lại mật khẩu mới"
-                                               required>
-                                        <img src="assets/img/icons/lock.svg" alt="icon">
+                                               required>                                  
                                     </div>
                                 </div>
 
