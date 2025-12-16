@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+
+import dao.ProductDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,7 +15,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.CardInfo;
 import model.Order;
+import model.Product;
 import model.User;
+import service.EmailService;
 
 @WebServlet(name = "CustomerPurchaseController", urlPatterns = {"/customer/purchase"})
 public class CustomerPurchaseController extends HttpServlet {
@@ -56,7 +60,16 @@ public class CustomerPurchaseController extends HttpServlet {
 
         Order order = result.getOrder();
         CardInfo card = result.getCardInfo();
-
+        
+        // Send mail
+        try{
+            ProductDAO productDAO = new ProductDAO();
+            Product product = productDAO.findById(productId);
+            EmailService.sendEmail(receiverEmail, "Đặt hàng thành công", "Chúc mừng bạn đã đặt hàng thành công sản phẩm: " + product.getName() + "\n Mã thẻ: " + order.getCardCode());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
         request.setAttribute("order", order);
         request.setAttribute("card", card);
         request.setAttribute("purchaseSuccess", true);
