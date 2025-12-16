@@ -1,5 +1,5 @@
 -------------------------------------------------------------
--- 1. DROP DATABASE IF EXISTS (đảm bảo xóa sạch DB)
+-- 1. DROP DATABASE IF EXISTS
 -------------------------------------------------------------
 IF DB_ID('ocs') IS NOT NULL
 BEGIN
@@ -38,8 +38,8 @@ GO
 
 CREATE TABLE Role (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    description VARCHAR(255)
+    name NVARCHAR(50) NOT NULL,
+    description NVARCHAR(255)
 );
 GO
 
@@ -50,7 +50,7 @@ CREATE TABLE [User] (
     full_name NVARCHAR(100) NOT NULL,
     phone NVARCHAR(20),
     address NVARCHAR(255),
-    status NVARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE','LOCKED','INACTIVE')),
+    status NVARCHAR(20) NOT NULL CHECK (status IN (N'ACTIVE',N'LOCKED',N'INACTIVE')),
     wallet_balance DECIMAL(15,2) NOT NULL DEFAULT 0,
     role_id BIGINT NOT NULL,
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
@@ -61,28 +61,27 @@ GO
 
 CREATE TABLE UserOTP (
     user_id BIGINT PRIMARY KEY,  -- mỗi user chỉ có 1 record
-    otp_code VARCHAR(10) NOT NULL,
+    otp_code NVARCHAR(10) NOT NULL,
     otp_created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     send_count INT NOT NULL DEFAULT 0,
     last_send DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-
     CONSTRAINT fk_userotp_user FOREIGN KEY (user_id) REFERENCES [User](id)
 );
 GO
 
 CREATE TABLE Category (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description VARCHAR(255),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE','INACTIVE'))
+    name NVARCHAR(100) NOT NULL,
+    description NVARCHAR(255),
+    status NVARCHAR(20) NOT NULL CHECK (status IN (N'ACTIVE',N'INACTIVE'))
 );
 GO
 
 CREATE TABLE Provider (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    contact_info VARCHAR(255),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE','INACTIVE'))
+    name NVARCHAR(100) NOT NULL,
+    contact_info NVARCHAR(255),
+    status NVARCHAR(20) NOT NULL CHECK (status IN (N'ACTIVE',N'INACTIVE'))
 );
 GO
 
@@ -90,14 +89,14 @@ CREATE TABLE Product (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     category_id BIGINT NOT NULL,
     provider_id BIGINT NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    description VARCHAR(255),
-    image_url VARCHAR(500),
+    name NVARCHAR(100) NOT NULL,
+    description NVARCHAR(255),
+    image_url NVARCHAR(500),
     cost_price DECIMAL(15,2) NOT NULL,
     sell_price DECIMAL(15,2) NOT NULL,
     discount_percent DECIMAL(5,2) NOT NULL DEFAULT 0,
     quantity INT NOT NULL DEFAULT 0,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE','INACTIVE')),
+    status NVARCHAR(20) NOT NULL CHECK (status IN (N'ACTIVE',N'INACTIVE')),
     CONSTRAINT fk_product_category FOREIGN KEY (category_id) REFERENCES Category(id),
     CONSTRAINT fk_product_provider FOREIGN KEY (provider_id) REFERENCES Provider(id)
 );
@@ -107,11 +106,11 @@ CREATE TABLE ProductLog (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     product_id BIGINT NOT NULL,
     user_id BIGINT,
-    action VARCHAR(50) NOT NULL,
-    field_name VARCHAR(100),
-    old_value VARCHAR(255),
-    new_value VARCHAR(255),
-    note VARCHAR(255),
+    action NVARCHAR(50) NOT NULL,
+    field_name NVARCHAR(100),
+    old_value NVARCHAR(255),
+    new_value NVARCHAR(255),
+    note NVARCHAR(255),
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT fk_productlog_product FOREIGN KEY (product_id) REFERENCES Product(id),
     CONSTRAINT fk_productlog_user FOREIGN KEY (user_id) REFERENCES [User](id)
@@ -121,10 +120,10 @@ GO
 CREATE TABLE CardInfo (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     product_id BIGINT NOT NULL,
-    code VARCHAR(255) NOT NULL,
-    serial VARCHAR(100),
+    code NVARCHAR(255) NOT NULL,
+    serial NVARCHAR(100),
     expiry_date DATE,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('AVAILABLE','SOLD','EXPIRED','INACTIVE')),
+    status NVARCHAR(20) NOT NULL CHECK (status IN (N'AVAILABLE',N'SOLD',N'EXPIRED',N'INACTIVE')),
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT uq_cardinfo_code UNIQUE (code),
@@ -140,8 +139,8 @@ CREATE TABLE [Order] (
     original_price DECIMAL(15,2) NOT NULL,
     discount_percent DECIMAL(5,2) NOT NULL DEFAULT 0,
     final_price DECIMAL(15,2) NOT NULL,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING','PAID','COMPLETED','CANCELED','REFUNDED')),
-    receiver_email VARCHAR(100) NOT NULL,
+    status NVARCHAR(20) NOT NULL CHECK (status IN (N'PENDING',N'PAID',N'COMPLETED',N'CANCELED',N'REFUNDED')),
+    receiver_email NVARCHAR(100) NOT NULL,
     CONSTRAINT fk_order_user FOREIGN KEY (user_id) REFERENCES [User](id),
     CONSTRAINT fk_order_cardinfo FOREIGN KEY (cardinfo_id) REFERENCES CardInfo(id),
     CONSTRAINT uq_order_cardinfo UNIQUE (cardinfo_id)
@@ -151,13 +150,13 @@ GO
 CREATE TABLE WalletTransaction (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('TOPUP','PURCHASE','REFUND')),
+    type NVARCHAR(20) NOT NULL CHECK (type IN (N'TOPUP',N'PURCHASE',N'REFUND')),
     amount DECIMAL(15,2) NOT NULL,
     balance DECIMAL(15,2) NOT NULL,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING','SUCCESS','FAILED')),
-    reference_code VARCHAR(100),
-    qr_url VARCHAR(255),
-    bank_code VARCHAR(50),
+    status NVARCHAR(20) NOT NULL CHECK (status IN (N'PENDING',N'SUCCESS',N'FAILED')),
+    reference_code NVARCHAR(100),
+    qr_url NVARCHAR(255),
+    bank_code NVARCHAR(50),
     payment_time DATETIME2,
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
@@ -165,21 +164,25 @@ CREATE TABLE WalletTransaction (
 );
 GO
 
+-------------------------------------------------------------
+-- 5. INSERT SAMPLE DATA
+-------------------------------------------------------------
 INSERT INTO Role (name, description) VALUES
-('ADMIN', 'System administrator'),
-('STAFF', 'Internal staff'),
-('CUSTOMER', 'Regular customer');
+(N'ADMIN', N'System administrator'),
+(N'STAFF', N'Internal staff'),
+(N'CUSTOMER', N'Regular customer');
 
 INSERT INTO [User] (email, password_hash, full_name, phone, address, status, wallet_balance, role_id)
 VALUES
-('admin@ocs.com', 
- '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
- 'Administrator', '0900000001', 'System HQ', 'ACTIVE', 0, 1),
+(N'admin@ocs.com', 
+ N'$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
+ N'Administrator', N'0900000001', N'System HQ', N'ACTIVE', 0, 1),
 
-('staff@ocs.com',
- '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
- 'System Staff', '0900000002', 'Office 1', 'ACTIVE', 0, 2),
+(N'staff@ocs.com',
+ N'$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
+ N'System Staff', N'0900000002', N'Office 1', N'ACTIVE', 0, 2),
 
-('customer@ocs.com',
- '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
- 'Sample Customer', '0900000003', 'District 1', 'ACTIVE', 50000, 3);
+(N'customer@ocs.com',
+ N'$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.',
+ N'Nguyễn Văn A', N'0900000003', N'Quận 1, TP.HCM', N'ACTIVE', 50000, 3);
+GO
