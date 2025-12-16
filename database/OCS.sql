@@ -45,12 +45,12 @@ GO
 
 CREATE TABLE [User] (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    address VARCHAR(255),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE','LOCKED','INACTIVE')),
+    email NVARCHAR(100) NOT NULL UNIQUE,
+    password_hash NVARCHAR(255) NOT NULL,
+    full_name NVARCHAR(100) NOT NULL,
+    phone NVARCHAR(20),
+    address NVARCHAR(255),
+    status NVARCHAR(20) NOT NULL CHECK (status IN ('ACTIVE','LOCKED','INACTIVE')),
     wallet_balance DECIMAL(15,2) NOT NULL DEFAULT 0,
     role_id BIGINT NOT NULL,
     created_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
