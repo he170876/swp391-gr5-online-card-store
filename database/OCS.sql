@@ -92,6 +92,7 @@ CREATE TABLE Product (
     provider_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),
+    image_url VARCHAR(500),
     cost_price DECIMAL(15,2) NOT NULL,
     sell_price DECIMAL(15,2) NOT NULL,
     discount_percent DECIMAL(5,2) NOT NULL DEFAULT 0,
