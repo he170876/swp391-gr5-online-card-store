@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class OrderService {
+
     private OrderDAO orderDAO;
     private CardInfoDAO cardInfoDAO;
     private ProductDAO productDAO;
@@ -136,6 +137,34 @@ public class OrderService {
         }
         return null;
     }
+
+    /**
+     * Get all orders.
+     */
+    public java.util.List<Order> getAllOrders() {
+        return orderDAO.getAllOrders();
+    }
+
+    /**
+     * Update order status with validation.
+     */
+    public boolean updateOrderStatus(long orderId, String newStatus) {
+        Order current = orderDAO.getById(orderId);
+        if (current == null) {
+            System.out.println("Order not found: " + orderId);
+            return false;
+        }
+
+        if (!util.OrderStatus.isValid(newStatus)) {
+            System.out.println("Invalid status: " + newStatus);
+            return false;
+        }
+
+        if (!util.OrderStatus.isAllowedTransition(current.getStatus(), newStatus)) {
+            System.out.println("Transition not allowed: " + current.getStatus() + " -> " + newStatus);
+            return false;
+        }
+
+        return orderDAO.updateStatus(orderId, newStatus);
+    }
 }
-
-

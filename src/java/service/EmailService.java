@@ -22,10 +22,11 @@ import java.util.Properties;
  */
 public class EmailService {
 
-    //Email: onlinecardstore01@gmail.com
-    //Password: onlinecard123 
-    //AppPassword: sbkltmoqmsqollok
-    public static void sendEmail(String toEmail, String subject, String messageContent) throws MessagingException, UnsupportedEncodingException {
+    // Email: onlinecardstore01@gmail.com
+    // Password: onlinecard123
+    // AppPassword: sbkltmoqmsqollok
+    public static void sendEmail(String toEmail, String subject, String messageContent)
+            throws MessagingException, UnsupportedEncodingException {
         final String fromEmail = "onlinecardstore01@gmail.com";
         final String appPassword = "sbkltmoqmsqollok"; // App password 16 ký tự
 
@@ -48,5 +49,27 @@ public class EmailService {
         msg.setContent(messageContent, "text/plain; charset=UTF-8");
 
         Transport.send(msg);
+    }
+
+    /**
+     * Convenience wrapper to send a card code email. Returns true if sent, false on
+     * failure.
+     */
+    public boolean sendCardCodeEmail(String toEmail, String code, String serial) {
+        StringBuilder body = new StringBuilder();
+        body.append("Thank you for your purchase.\n");
+        body.append("Card code: ").append(code).append("\n");
+        if (serial != null && !serial.isEmpty()) {
+            body.append("Serial: ").append(serial).append("\n");
+        }
+        body.append("Please keep this information secure.");
+
+        try {
+            sendEmail(toEmail, "Your card code", body.toString());
+            return true;
+        } catch (Exception e) {
+            System.out.println("Failed to send email: " + e.getMessage());
+            return false;
+        }
     }
 }

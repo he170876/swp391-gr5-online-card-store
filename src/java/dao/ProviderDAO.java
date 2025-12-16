@@ -3,6 +3,7 @@ package dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Provider;
@@ -13,6 +14,23 @@ public class ProviderDAO extends DBContext {
 
     PreparedStatement stm;
     ResultSet rs;
+
+    public List<Provider> listAll() {
+        List<Provider> result = new ArrayList<>();
+        String sql = "SELECT id, name, description FROM Provider";
+        try ( PreparedStatement stm = connection.prepareStatement(sql);  ResultSet rs = stm.executeQuery()) {
+            while (rs.next()) {
+                Provider provider = new Provider();
+                provider.setId(rs.getLong("id"));
+                provider.setName(rs.getString("name"));
+                provider.setContactInfo(rs.getString("description"));
+                result.add(provider);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return result;
+    }
 
     // =========================================
     // GET PROVIDER BY ID (with product count)
@@ -287,12 +305,12 @@ public class ProviderDAO extends DBContext {
     // HELPER: Map ResultSet to Provider (with product count)
     // =========================================
     private Provider mapResultSetToProviderWithCount(ResultSet rs) throws Exception {
-        Provider provider = mapResultSetToProvider(rs);
-        try {
-            provider.setProductCount(rs.getInt("product_count"));
-        } catch (Exception ignored) {}
+        Provider provider = new Provider();
+        provider.setId(rs.getLong("id"));
+        provider.setName(rs.getString("name"));
+        provider.setContactInfo(rs.getString("contact_info"));
+        provider.setStatus(rs.getString("status"));
+        provider.setProductCount(rs.getInt("product_count"));
         return provider;
     }
 }
-
-
