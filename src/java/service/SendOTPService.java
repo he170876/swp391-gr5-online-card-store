@@ -60,7 +60,6 @@ public class SendOTPService {
         newOtp.setUserId(user.getId());
         newOtp.setOtpCode(otp);
 
-        otpDAO.deleteOTP(user.getId());
         otpDAO.insertOrUpdate(newOtp);
 
         try {

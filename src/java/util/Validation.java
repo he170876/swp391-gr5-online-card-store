@@ -10,89 +10,102 @@ package util;
  */
 public class Validation {
 
+    /* ================= EMAIL ================= */
     public boolean isValidEmail(String email) {
-        if (email == null || email.isEmpty()) {
+        if (email == null) {
             return false;
         }
 
-        // Sử dụng biểu thức chính quy để kiểm tra định dạng email
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        email = email.trim();
+
+        // Giới hạn độ dài
+        if (email.length() < 5 || email.length() > 255) {
+            return false;
+        }
+
+        String emailRegex
+                = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
         return email.matches(emailRegex);
     }
 
+    /* ================= PASSWORD ================= */
     public boolean isValidPassword(String password, String confirmPassword) {
-        if (password == null || password.isEmpty()) {
+        if (password == null || confirmPassword == null) {
             return false;
         }
 
-        // Kiểm tra độ dài password (ví dụ: tối thiểu 6 ký tự)
-        if (password.length() < 6) {
+        // Giới hạn độ dài
+        if (password.length() < 8 || password.length() > 64) {
             return false;
         }
 
-        // Kiểm tra password có chứa ít nhất một chữ cái thường, một chữ cái in hoa, một số và một ký tự đặc biệt
-        if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$")) {
+        // Ít nhất: thường, hoa, số, ký tự đặc biệt
+        if (!password.matches(
+                "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$")) {
             return false;
         }
 
-        // Kiểm tra password và confirm password có trùng nhau không
         return password.equals(confirmPassword);
     }
 
+    /* ================= FULL NAME ================= */
     public boolean isValidFullName(String fullName) {
-        if (fullName == null || fullName.trim().isEmpty()) {
+        if (fullName == null) {
             return false;
         }
 
-        // Chỉ cho phép chữ cái (kể cả tiếng Việt có dấu) và khoảng trắng
+        fullName = fullName.trim();
+
+        // Giới hạn độ dài
+        if (fullName.length() < 2 || fullName.length() > 100) {
+            return false;
+        }
+
+        // Chỉ chữ + khoảng trắng (có dấu)
         if (!fullName.matches("^[\\p{L}\\s]+$")) {
             return false;
         }
 
-        // Không cho phép có 2 khoảng trắng liên tiếp
-        if (fullName.contains("  ")) {
-            return false;
-        }
-
-        return true;
+        // Không có 2 space liên tiếp
+        return !fullName.contains("  ");
     }
 
+    /* ================= PHONE ================= */
     public boolean isValidPhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.isEmpty()) {
+        if (phoneNumber == null) {
             return false;
         }
 
-        // Kiểm tra số điện thoại chỉ chứa các chữ số và ký tự + (nếu có)
-        // Ví dụ: +1234567890 hoặc 1234567890
-        if (!phoneNumber.matches("^\\+?\\d+$")) {
-            return false;
-        }
+        phoneNumber = phoneNumber.trim();
 
-        // Kiểm tra số điện thoại có độ dài hợp lệ
-        // Ví dụ: chiều dài từ 10 đến 15 ký tự (bao gồm cả dấu +)
+        // Giới hạn độ dài
         if (phoneNumber.length() < 10 || phoneNumber.length() > 15) {
             return false;
         }
 
-        return true;
+        // Chỉ số và +
+        return phoneNumber.matches("^\\+?\\d+$");
     }
 
+    /* ================= ADDRESS ================= */
     public boolean isValidAddress(String address) {
-        if (address == null || address.isEmpty()) {
+        if (address == null) {
             return false;
         }
 
-        // Chỉ cho phép chữ cái (kể cả tiếng Việt có dấu) và khoảng trắng
-        if (!address.matches("^[\\p{L}\\s]+$")) {
+        address = address.trim();
+
+        // Giới hạn độ dài
+        if (address.length() < 5 || address.length() > 255) {
             return false;
         }
 
-        // Kiểm tra address không chứa hai khoảng trắng liên tiếp
-        if (address.contains("  ")) {
+        // Cho phép chữ, số, dấu phẩy, chấm, gạch ngang
+        if (!address.matches("^[\\p{L}\\d\\s,.-]+$")) {
             return false;
         }
 
-        return true;
+        return !address.contains("  ");
     }
-
 }

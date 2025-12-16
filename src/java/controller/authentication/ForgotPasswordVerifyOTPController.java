@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package controller;
+package controller.authentication;
 
 import dao.UserDAO;
 import dao.UserOTPDAO;
@@ -73,65 +73,75 @@ public class ForgotPasswordVerifyOTPController extends HttpServlet {
         UserOTPDAO otpDAO = new UserOTPDAO();
         UserOTP userOtp = otpDAO.getByUserId(userId);
 
+        // ===== CHECK OTP EXISTS =====
         if (userOtp == null) {
-            request.setAttribute("error", "Mã OTP không tồn tại! Vui lòng gửi lại OTP!");
-            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+            forwardWithError(request, response,
+                    "Mã OTP không tồn tại. Vui lòng gửi lại mã OTP.", user);
             return;
         }
 
-        // Kiểm tra OTP hết hạn 5 phút
+        // ===== CHECK OTP EXPIRED (5 minutes) =====
         LocalDateTime now = LocalDateTime.now();
         if (userOtp.getLastSend().plusMinutes(5).isBefore(now)) {
-            request.setAttribute("error", "Mã OTP đã hết hạn! Vui lòng gửi lại!");
-            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+            forwardWithError(request, response,
+                    "Mã OTP đã hết hạn. Vui lòng gửi lại mã OTP mới.", user);
             return;
         }
 
+        // ===== CHECK OTP INPUT =====
         if (otpInput == null || otpInput.trim().isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập OTP!");
-            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+            forwardWithError(request, response,
+                    "Vui lòng nhập mã OTP.", user);
             return;
         }
 
-        // Kiểm tra chính xác mã OTP
+        // ===== CHECK OTP MATCH =====
         if (!otpInput.equals(userOtp.getOtpCode())) {
-            request.setAttribute("error", "Mã OTP không chính xác!");
-            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+            forwardWithError(request, response,
+                    "Mã OTP không chính xác.", user);
             return;
         }
 
         // ===== VALIDATE PASSWORD =====
-        if (newPassword == null || newPassword.isEmpty()) {
-            request.setAttribute("error", "Mật khẩu không được để trống!");
-            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            forwardWithError(request, response,
+                    "Mật khẩu không được để trống.", user);
             return;
-        } else if (!v.isValidPassword(newPassword, confirmPassword)) {
-            request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số, ký tự đặc biệt và trùng khớp xác nhận!");
-            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+        }
+
+        if (newPassword.length() < 8 || newPassword.length() > 64) {
+            forwardWithError(request, response,
+                    "Mật khẩu phải có độ dài từ 8 đến 64 ký tự.", user);
+            return;
+        }
+
+        if (!v.isValidPassword(newPassword, confirmPassword)) {
+            forwardWithError(request, response,
+                    "Mật khẩu phải gồm chữ hoa, chữ thường, số, ký tự đặc biệt và trùng khớp xác nhận.",
+                    user);
+            return;
+        }
+
+        // ===== CHECK NEW PASSWORD != OLD PASSWORD =====
+        if (PasswordUtil.check(newPassword, user.getPasswordHash())) {
+            forwardWithError(request, response,
+                    "Mật khẩu mới phải khác mật khẩu hiện tại.", user);
             return;
         }
 
         // ===== HASH PASSWORD =====
         String hashedPassword = PasswordUtil.hash(newPassword);
         if (hashedPassword == null) {
-            request.setAttribute("error", "Lỗi mã hóa mật khẩu!");
-            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+            forwardWithError(request, response,
+                    "Lỗi hệ thống khi mã hóa mật khẩu. Vui lòng thử lại.", user);
             return;
         }
 
+        // ===== UPDATE PASSWORD =====
         boolean update = userDAO.resetPassword(userId, hashedPassword);
-
         if (!update) {
-            request.setAttribute("error", "Lỗi cập nhật mật khẩu!");
-            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+            forwardWithError(request, response,
+                    "Không thể cập nhật mật khẩu. Vui lòng thử lại sau.", user);
             return;
         }
 
@@ -142,6 +152,17 @@ public class ForgotPasswordVerifyOTPController extends HttpServlet {
         String success = URLEncoder.encode("Đổi mật khẩu thành công! Vui lòng đăng nhập!", "UTF-8");
         response.sendRedirect(request.getContextPath() + "/login?success=" + success);
 
+    }
+
+    private void forwardWithError(HttpServletRequest request,
+            HttpServletResponse response,
+            String message,
+            User user) throws ServletException, IOException {
+
+        request.setAttribute("error", message);
+        request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
+        request.getRequestDispatcher("forgot-pass-verify-otp.jsp")
+                .forward(request, response);
     }
 
     public String maskEmail(String email) {
