@@ -18,8 +18,6 @@ import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import model.User;
 import model.UserOTP;
-import service.EmailService;
-import util.OTPGenerator;
 import util.PasswordUtil;
 import util.Validation;
 
@@ -38,19 +36,15 @@ public class ForgotPasswordVerifyOTPController extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         // Kiểm tra session tồn tại
-        if (session == null || session.getAttribute("forgotPasswordUserId") == null) {
-            String error = URLEncoder.encode("Không tìm thấy Id! Vui lòng kiểm tra lại!", "UTF-8");
+        if (session == null || session.getAttribute("forgotPasswordEmail") == null) {
+            String error = URLEncoder.encode("Phiên làm việc đã hết hạn! Vui lòng thực hiện lại.!", "UTF-8");
             response.sendRedirect("/forgotPassword?error=" + error);
             return;
         }
 
-        Long userId = (Long) session.getAttribute("forgotPasswordUserId");
-        String otpInput = request.getParameter("otp");
-        String newPassword = request.getParameter("newPassword");
-        String confirmPassword = request.getParameter("confirmPassword");
-
+        String forgotPasswordEmail = (String) session.getAttribute("forgotPasswordEmail");
         UserDAO userDAO = new UserDAO();
-        User user = userDAO.getUserById(userId);
+        User user = userDAO.getUserByEmail(forgotPasswordEmail);
         Validation v = new Validation();
 
         if (user == null) {
@@ -59,12 +53,29 @@ public class ForgotPasswordVerifyOTPController extends HttpServlet {
             return;
         }
 
+        if (user.getStatus().equals("LOCKED")) {
+            request.setAttribute("error", "Tài khoản đã bị khóa.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
+
+        if (user.getStatus().equals("INACTIVE")) {
+            request.setAttribute("error", "Tài khoản chưa được kích hoạt.");
+            request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
+            return;
+        }
+
+        Long userId = user.getId();
+        String otpInput = request.getParameter("otp");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+
         UserOTPDAO otpDAO = new UserOTPDAO();
         UserOTP userOtp = otpDAO.getByUserId(userId);
 
         if (userOtp == null) {
             request.setAttribute("error", "Mã OTP không tồn tại! Vui lòng gửi lại OTP!");
-            request.setAttribute("maskedEmail", maskEmail((String) session.getAttribute("forgotPasswordEmail")));
+            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
             request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
             return;
         }
@@ -73,15 +84,22 @@ public class ForgotPasswordVerifyOTPController extends HttpServlet {
         LocalDateTime now = LocalDateTime.now();
         if (userOtp.getLastSend().plusMinutes(5).isBefore(now)) {
             request.setAttribute("error", "Mã OTP đã hết hạn! Vui lòng gửi lại!");
-            request.setAttribute("maskedEmail", maskEmail((String) session.getAttribute("forgotPasswordEmail")));
+            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
+            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+            return;
+        }
+
+        if (otpInput == null || otpInput.trim().isEmpty()) {
+            request.setAttribute("error", "Vui lòng nhập OTP!");
+            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
             request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
             return;
         }
 
         // Kiểm tra chính xác mã OTP
-        if (otpInput == null || !otpInput.equals(userOtp.getOtpCode())) {
+        if (!otpInput.equals(userOtp.getOtpCode())) {
             request.setAttribute("error", "Mã OTP không chính xác!");
-            request.setAttribute("maskedEmail", maskEmail((String) session.getAttribute("forgotPasswordEmail")));
+            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
             request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
             return;
         }
@@ -89,12 +107,12 @@ public class ForgotPasswordVerifyOTPController extends HttpServlet {
         // ===== VALIDATE PASSWORD =====
         if (newPassword == null || newPassword.isEmpty()) {
             request.setAttribute("error", "Mật khẩu không được để trống!");
-            request.setAttribute("maskedEmail", maskEmail((String) session.getAttribute("forgotPasswordEmail")));
+            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
             request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
             return;
         } else if (!v.isValidPassword(newPassword, confirmPassword)) {
             request.setAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số, ký tự đặc biệt và trùng khớp xác nhận!");
-            request.setAttribute("maskedEmail", maskEmail((String) session.getAttribute("forgotPasswordEmail")));
+            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
             request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
             return;
         }
@@ -103,7 +121,7 @@ public class ForgotPasswordVerifyOTPController extends HttpServlet {
         String hashedPassword = PasswordUtil.hash(newPassword);
         if (hashedPassword == null) {
             request.setAttribute("error", "Lỗi mã hóa mật khẩu!");
-            request.setAttribute("maskedEmail", maskEmail((String) session.getAttribute("forgotPasswordEmail")));
+            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
             request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
             return;
         }
@@ -112,14 +130,13 @@ public class ForgotPasswordVerifyOTPController extends HttpServlet {
 
         if (!update) {
             request.setAttribute("error", "Lỗi cập nhật mật khẩu!");
-            request.setAttribute("maskedEmail", maskEmail((String) session.getAttribute("forgotPasswordEmail")));
+            request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
             request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
             return;
         }
 
         otpDAO.deleteOTP(userId);
         session.removeAttribute("forgotPasswordEmail");
-        session.removeAttribute("forgotPasswordUserId");
 
         // Điều hướng đến login
         String success = URLEncoder.encode("Đổi mật khẩu thành công! Vui lòng đăng nhập!", "UTF-8");

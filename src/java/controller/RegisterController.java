@@ -5,7 +5,6 @@
 package controller;
 
 import dao.UserDAO;
-import dao.UserOTPDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,13 +13,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.net.URLEncoder;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import model.SendOTPResult;
 import model.User;
-import model.UserOTP;
-import service.EmailService;
-import util.OTPGenerator;
+import service.SendOTPService;
 import util.PasswordUtil;
 import util.Validation;
 
@@ -127,7 +124,7 @@ public class RegisterController extends HttpServlet {
         u.setPhone(phone);
         u.setAddress(address);
         u.setRoleId(3); // CUSTOMER
-
+        u.setStatus("INACTIVE");
         boolean inserted = dao.insertUser(u);
 
         if (!inserted) {
@@ -141,13 +138,8 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-        // ===== SAVE EMAIL FOR OTP VERIFY =====
-        HttpSession session = request.getSession();
-        session.setAttribute("registerEmail", email);
-
-        String registerEmail = (String) session.getAttribute("registerEmail");
         UserDAO userDAO = new UserDAO();
-        User user = userDAO.getUserByEmail(registerEmail);
+        User user = userDAO.getUserByEmail(email);
 
         if (user == null) {
             String error = URLEncoder.encode("Không tìm thấy Người dùng! Vui lòng kiểm tra lại!", "UTF-8");
@@ -167,72 +159,25 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-        session.setAttribute("registerUserId", user.getId());
-        request.setAttribute("maskedEmail", maskEmail(registerEmail));
+        // ===== SAVE EMAIL FOR OTP VERIFY =====
+        HttpSession session = request.getSession();
+        session.setAttribute("registerEmail", user.getEmail());
 
-        UserOTPDAO otpDAO = new UserOTPDAO();
-        UserOTP lastOtp = otpDAO.getByUserId(user.getId());
+        // ===== SEND OTP USING SERVICE =====
+        SendOTPService otpService = new SendOTPService();
+        SendOTPResult result = otpService.sendRegisterOTP(user);
 
-        if (lastOtp != null) {
-            LocalDateTime now = LocalDateTime.now();
-
-            // --- Delay 60 giây ---
-            if (lastOtp.getLastSend().plusSeconds(60).isAfter(now)) {
-                request.setAttribute("error", "Vui lòng đợi 60 giây trước khi gửi lại OTP!");
-                request.getRequestDispatcher("register-verify-otp.jsp").forward(request, response);
-                return;
-            }
-
-            // --- Kiểm tra gửi quá 5 lần ---
-            if (lastOtp.getSendCount() >= 5) {
-
-                LocalDateTime blockUntil = lastOtp.getLastSend().plusMinutes(30);
-
-                // Nếu CHƯA đủ 30 phút → chặn và hiển thị thời gian còn lại
-                if (blockUntil.isAfter(now)) {
-
-                    long minutesLeft = java.time.Duration.between(now, blockUntil).toMinutes();
-                    long secondsLeft = java.time.Duration.between(now, blockUntil).getSeconds() % 60;
-
-                    String error = "Bạn đã gửi quá nhiều lần! "
-                            + "Vui lòng đợi " + minutesLeft + " phút " + secondsLeft + " giây trước khi gửi lại OTP!";
-
-                    request.setAttribute("error", error);
-                    request.getRequestDispatcher("register-verify-otp.jsp").forward(request, response);
-                    return;
-                }
-
-                // Đủ 30 phút rồi → reset
-                otpDAO.deleteOTP(user.getId());
-            }
-
-        }
-
-        OTPGenerator otpGen = new OTPGenerator();
-        String otp = otpGen.getOtpCode();
-
-        UserOTP userOTP = new UserOTP();
-        userOTP.setUserId(user.getId());
-        userOTP.setOtpCode(otp);
-
-        otpDAO.insertOrUpdate(userOTP);
-
-        // --- Gửi OTP qua email ---
-        try {
-            EmailService.sendEmail(
-                    user.getEmail(),
-                    "Xác minh tài khoản",
-                    "Mã OTP của bạn là: " + otp + "\nCó hiệu lực trong 5 phút."
-            );
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            String error = URLEncoder.encode("Không thể gửi OTP. Vui lòng thử lại!", "UTF-8");
-            response.sendRedirect("/register?error=" + error);
+        if (!result.isSuccess()) {
+            request.setAttribute("error", result.getMessage());
+            request.getRequestDispatcher("register-verify-otp.jsp")
+                    .forward(request, response);
             return;
         }
 
-        request.setAttribute("msg", "Mã OTP đã được gửi!");
-        request.getRequestDispatcher("register-verify-otp.jsp").forward(request, response);
+        request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
+        request.setAttribute("msg", result.getMessage());
+        request.getRequestDispatcher("register-verify-otp.jsp")
+                .forward(request, response);
     }
 
     public String maskEmail(String email) {

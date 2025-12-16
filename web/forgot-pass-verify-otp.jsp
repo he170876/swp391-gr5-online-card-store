@@ -53,12 +53,12 @@
                             </c:if>
 
                             <!-- Thông tin email & thời hạn OTP -->
-                            <c:if test="${not empty displayEmail}">
+                            <c:if test="${not empty maskedEmail}">
                                 <div class="text-center mb-3">
                                     <small class="text-muted d-block">
                                         Mã OTP đã được gửi đến email:
                                         <strong>
-                                            <c:out value="${displayEmail}" />
+                                            <c:out value="${maskedEmail}" />
                                         </strong>
                                     </small>
 

@@ -34,13 +34,36 @@ public class RegisterVerifyOTPController extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         // Kiểm tra session tồn tại
-        if (session == null || session.getAttribute("registerUserId") == null) {
-            String error = URLEncoder.encode("Không tìm thấy Id! Vui lòng kiểm tra lại!", "UTF-8");
+        if (session == null || session.getAttribute("registerEmail") == null) {
+            String error = URLEncoder.encode("Không tìm thấy Email! Vui lòng kiểm tra lại!", "UTF-8");
             response.sendRedirect("/login?error=" + error);
             return;
         }
 
-        Long userId = (Long) session.getAttribute("registerUserId");
+        String registerEmail = (String) session.getAttribute("registerEmail");
+
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUserByEmail(registerEmail);
+
+        if (user == null) {
+            String error = URLEncoder.encode("Không tìm thấy Người dùng! Vui lòng kiểm tra lại!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
+        if (user.getStatus().equals("LOCKED")) {
+            String error = URLEncoder.encode("Tài khoản đã bị khóa! Vui lòng liên hệ Admin!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
+        if (user.getStatus().equals("ACTIVE")) {
+            String error = URLEncoder.encode("Tài khoản đã xác thực! Vui lòng đăng nhập!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
+        Long userId = user.getId();
         String otpInput = request.getParameter("otp");
 
         if (otpInput == null || otpInput.trim().isEmpty()) {
@@ -77,16 +100,6 @@ public class RegisterVerifyOTPController extends HttpServlet {
             return;
         }
 
-        // --- Xác thực thành công ⇒ cập nhật user status ---
-        UserDAO userDAO = new UserDAO();
-        User user = userDAO.getUserById(userId);
-
-        if (user == null) {
-            String error = URLEncoder.encode("Không tìm thấy người dùng!", "UTF-8");
-            response.sendRedirect("/register?error=" + error);
-            return;
-        }
-
         userDAO.activateUser(user.getId());
 
         // Xoá OTP để tránh dùng lại
@@ -94,7 +107,6 @@ public class RegisterVerifyOTPController extends HttpServlet {
 
         // Xoá session đăng ký
         session.removeAttribute("registerEmail");
-        session.removeAttribute("registerUserId");
 
         // Điều hướng đến login
         String success = URLEncoder.encode("Xác thực thành công! Vui lòng đăng nhập!", "UTF-8");
