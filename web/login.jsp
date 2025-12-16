@@ -69,7 +69,7 @@
 
                                 <div class="form-login">
                                     <div class="alreadyuser">
-                                        <h4><a href="${pageContext.request.contextPath}/forgetpassword.html" class="hover-a">Quên mật khẩu?</a></h4>
+                                        <h4><a href="${pageContext.request.contextPath}/forgotPassword" class="hover-a">Quên mật khẩu?</a></h4>
                                     </div>
                                 </div>
 

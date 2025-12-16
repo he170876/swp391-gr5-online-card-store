@@ -4,6 +4,7 @@
  */
 package controller;
 
+import dao.UserDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -11,6 +12,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.net.URLEncoder;
+import model.User;
 
 /**
  *
@@ -19,43 +23,62 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet(name = "ForgotPasswordController", urlPatterns = {"/forgotPassword"})
 public class ForgotPasswordController extends HttpServlet {
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getRequestDispatcher("register.jsp").forward(request, response);
+        request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doGet(request, response);
-    }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
+        request.setCharacterEncoding("UTF-8");
+
+        String email = request.getParameter("email") == null ? null : request.getParameter("email").trim();
+
+        //Kiểm tra xem dữ liệu truyền vào có rỗng không
+        if (email == null || email.isEmpty()) {
+            request.setAttribute("error", "Vui lòng nhập email!");
+            request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
+            return;
+        }
+
+        UserDAO userDao = new UserDAO();
+
+        //lỗi khi lấy thông tin người dùng
+        User user = userDao.getUserByEmail(email);
+        if (user == null) {
+            request.setAttribute("error", "Không thể tải thông tin người dùng.");
+            request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
+            return;
+        }
+
+        if (user.getStatus().equals("LOCKED")) {
+            request.setAttribute("error", "Tài khoản đã bị khóa.");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
+
+        if (user.getStatus().equals("INACTIVE")) {
+            // Lưu email để verify OTP
+            request.getSession().setAttribute("registerEmail", email);
+
+            String msg = URLEncoder.encode("Đã đăng ký thành công! Vui lòng kiểm tra email để nhập OTP.", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/register?msg=" + msg);
+            return;
+        }
+
+        // ===== SAVE EMAIL FOR OTP VERIFY =====
+        HttpSession session = request.getSession();
+        session.setAttribute("forgotPasswordEmail", email);
+
+        String msg = URLEncoder.encode(
+                "Mã OTP đã được gửi!",
+                "UTF-8"
+        );
+
+        response.sendRedirect(request.getContextPath() + "/forgotPasswordOTP?msg=" + msg);
+    }
 
 }
