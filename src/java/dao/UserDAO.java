@@ -113,6 +113,19 @@ public class UserDAO extends DBContext {
         return false;
     }
 
+    public boolean resetPassword(long userId, String hashedPassword) {
+        try {
+            String sql = "UPDATE [User] SET password_hash = ?, updated_at = GETDATE() WHERE id = ?";
+            stm = connection.prepareStatement(sql);
+            stm.setString(1, hashedPassword);
+            stm.setLong(2, userId);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("UserDAO.updatePassword: " + e.getMessage());
+            return false;
+        }
+    }
+
     public boolean activateUser(long userId) {
         try {
             String sql = "UPDATE [User] SET status = 'ACTIVE', updated_at = GETDATE() WHERE id = ?";

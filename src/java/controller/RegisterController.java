@@ -15,7 +15,9 @@ import jakarta.servlet.http.HttpSession;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import model.SendOTPResult;
 import model.User;
+import service.SendOTPService;
 import util.PasswordUtil;
 import util.Validation;
 
@@ -122,7 +124,7 @@ public class RegisterController extends HttpServlet {
         u.setPhone(phone);
         u.setAddress(address);
         u.setRoleId(3); // CUSTOMER
-
+        u.setStatus("INACTIVE");
         boolean inserted = dao.insertUser(u);
 
         if (!inserted) {
@@ -136,15 +138,53 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUserByEmail(email);
+
+        if (user == null) {
+            String error = URLEncoder.encode("Không tìm thấy Người dùng! Vui lòng kiểm tra lại!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
+        if (user.getStatus().equals("LOCKED")) {
+            String error = URLEncoder.encode("Tài khoản đã bị khóa! Vui lòng liên hệ Admin!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
+        if (user.getStatus().equals("ACTIVE")) {
+            String error = URLEncoder.encode("Tài khoản đã xác thực! Vui lòng đăng nhập!", "UTF-8");
+            response.sendRedirect("/login?error=" + error);
+            return;
+        }
+
         // ===== SAVE EMAIL FOR OTP VERIFY =====
         HttpSession session = request.getSession();
-        session.setAttribute("registerEmail", email);
+        session.setAttribute("registerEmail", user.getEmail());
 
-        String msg = URLEncoder.encode(
-                "Đăng ký thành công! Vui lòng kiểm tra email để nhập mã OTP.",
-                "UTF-8"
-        );
+        // ===== SEND OTP USING SERVICE =====
+        SendOTPService otpService = new SendOTPService();
+        SendOTPResult result = otpService.sendRegisterOTP(user);
 
-        response.sendRedirect(request.getContextPath() + "/registerVerifyOTP?msg=" + msg);
+        if (!result.isSuccess()) {
+            request.setAttribute("error", result.getMessage());
+            request.getRequestDispatcher("register-verify-otp.jsp")
+                    .forward(request, response);
+            return;
+        }
+
+        request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
+        request.setAttribute("msg", result.getMessage());
+        request.getRequestDispatcher("register-verify-otp.jsp")
+                .forward(request, response);
+    }
+
+    public String maskEmail(String email) {
+        int atIndex = email.indexOf("@");
+        if (atIndex <= 2) {
+            return "***" + email.substring(atIndex);
+        }
+        return email.substring(0, 2) + "****" + email.substring(atIndex);
     }
 }

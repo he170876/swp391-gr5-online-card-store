@@ -84,7 +84,7 @@ public class LoginController extends HttpServlet {
             request.getSession().setAttribute("registerEmail", email);
 
             String msg = URLEncoder.encode("Đã đăng ký thành công! Vui lòng kiểm tra email để nhập OTP.", "UTF-8");
-            response.sendRedirect(request.getContextPath() + "/registerVerifyOTP?msg=" + msg);
+            response.sendRedirect(request.getContextPath() + "/resendRegisterOTP?msg=" + msg);
             return;
         }
 

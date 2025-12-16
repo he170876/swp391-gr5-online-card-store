@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.net.URLEncoder;
 import model.SendOTPResult;
 import model.User;
 import service.SendOTPService;
@@ -21,37 +22,33 @@ import service.SendOTPService;
  *
  * @author hades
  */
-@WebServlet(name = "ForgotPasswordController", urlPatterns = {"/forgotPassword"})
-public class ForgotPasswordController extends HttpServlet {
-
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
-    }
+@WebServlet(name = "ResendForgotPassOTPController", urlPatterns = {"/resendForgotPassOtp"})
+public class ResendForgotPassOTPController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession(false);
 
-        String email = request.getParameter("email") == null ? null : request.getParameter("email").trim();
-
-        //Kiểm tra xem dữ liệu truyền vào có rỗng không
-        if (email == null || email.isEmpty()) {
-            request.setAttribute("error", "Vui lòng nhập email!");
-            request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
+        // ===== CHECK SESSION =====
+        if (session == null || session.getAttribute("forgotPasswordEmail") == null) {
+            String error = URLEncoder.encode(
+                    "Phiên làm việc đã hết hạn! Vui lòng thực hiện lại.",
+                    "UTF-8"
+            );
+            response.sendRedirect("/forgotPassword?error=" + error);
             return;
         }
 
-        UserDAO userDao = new UserDAO();
+        String email = (String) session.getAttribute("forgotPasswordEmail");
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUserByEmail(email);
 
-        //lỗi khi lấy thông tin người dùng
-        User user = userDao.getUserByEmail(email);
         if (user == null) {
-            request.setAttribute("error", "Email không tồn tại trong hệ thống.");
-            request.getRequestDispatcher("forgotPassword.jsp").forward(request, response);
+            String error = URLEncoder.encode("Không tìm thấy người dùng!", "UTF-8");
+            response.sendRedirect("/forgotPassword?error=" + error);
             return;
         }
 
@@ -67,33 +64,29 @@ public class ForgotPasswordController extends HttpServlet {
             return;
         }
 
-        // ===== SAVE EMAIL FOR OTP VERIFY =====
-        HttpSession session = request.getSession();
-        session.setAttribute("forgotPasswordEmail", user.getEmail());
-
-        // ===== CREATE OTP AND SEND EMAIL FOR OTP VERIFY =====
+        // ===== SEND OTP VIA SERVICE =====
         SendOTPService otpService = new SendOTPService();
         SendOTPResult result = otpService.sendForgotPasswordOTP(user);
 
-        request.setAttribute("maskedEmail", maskEmail(user.getEmail()));
+        request.setAttribute("maskedEmail", maskEmail(email));
 
         if (!result.isSuccess()) {
             request.setAttribute("error", result.getMessage());
-            request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
+            request.getRequestDispatcher("forgot-pass-verify-otp.jsp")
+                    .forward(request, response);
             return;
         }
 
         request.setAttribute("msg", result.getMessage());
-        request.getRequestDispatcher("forgot-pass-verify-otp.jsp").forward(request, response);
-
+        request.getRequestDispatcher("forgot-pass-verify-otp.jsp")
+                .forward(request, response);
     }
 
-    public String maskEmail(String email) {
+    private String maskEmail(String email) {
         int atIndex = email.indexOf("@");
         if (atIndex <= 2) {
             return "***" + email.substring(atIndex);
         }
         return email.substring(0, 2) + "****" + email.substring(atIndex);
     }
-
 }
