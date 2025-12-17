@@ -145,11 +145,11 @@ GO
 -- 5. ADDITIONAL CUSTOMERS
 -------------------------------------------------------------
 INSERT INTO [User] (email, password_hash, full_name, phone, address, status, wallet_balance, role_id) VALUES
-('nguyenvana@gmail.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', N'Nguyễn Văn A', '0901234567', N'123 Nguyễn Huệ, Quận 1, TP.HCM', 'ACTIVE', 150000, 3),
-('tranthib@gmail.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', N'Trần Thị B', '0912345678', N'456 Lê Lợi, Quận 3, TP.HCM', 'ACTIVE', 500000, 3),
-('lequangc@gmail.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', N'Lê Quang C', '0923456789', N'789 Trần Hưng Đạo, Quận 5, TP.HCM', 'ACTIVE', 75000, 3),
-('phamthid@gmail.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', N'Phạm Thị D', '0934567890', N'101 Võ Văn Tần, Quận 10, TP.HCM', 'LOCKED', 0, 3),
-('hoangvane@gmail.com', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', N'Hoàng Văn E', '0945678901', N'202 Điện Biên Phủ, Bình Thạnh, TP.HCM', 'ACTIVE', 1000000, 3);
+('nguyenvana@gmail.com', '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.', N'Nguyễn Văn A', '0901234567', N'123 Nguyễn Huệ, Quận 1, TP.HCM', 'ACTIVE', 150000, 3),
+('tranthib@gmail.com', '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.', N'Trần Thị B', '0912345678', N'456 Lê Lợi, Quận 3, TP.HCM', 'ACTIVE', 500000, 3),
+('lequangc@gmail.com', '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.', N'Lê Quang C', '0923456789', N'789 Trần Hưng Đạo, Quận 5, TP.HCM', 'ACTIVE', 75000, 3),
+('phamthid@gmail.com', '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.', N'Phạm Thị D', '0934567890', N'101 Võ Văn Tần, Quận 10, TP.HCM', 'LOCKED', 0, 3),
+('hoangvane@gmail.com', '$2a$12$/43J6kpkYk.EFIcJtYGkBO2Vks88HQVkyBFb6L71S/3KXwe7nHR5.', N'Hoàng Văn E', '0945678901', N'202 Điện Biên Phủ, Bình Thạnh, TP.HCM', 'ACTIVE', 1000000, 3);
 GO
 
 -- Additional staff

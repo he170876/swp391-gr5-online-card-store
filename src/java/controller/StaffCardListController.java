@@ -21,7 +21,7 @@ import util.CardInfoStatus;
 /**
  * Staff view for card info list with filters/sorting.
  */
-@WebServlet(name = "StaffCardListController", urlPatterns = { "/staff/cards" })
+@WebServlet(name = "StaffCardListController", urlPatterns = { "/staff/card" })
 public class StaffCardListController extends HttpServlet {
 
     private final CardInfoService cardInfoService = new CardInfoService();
@@ -46,7 +46,28 @@ public class StaffCardListController extends HttpServlet {
         List<Product> products = cardInfoService.listProducts();
         Map<Long, Provider> providerMap = cardInfoService.mapProviders();
 
-        request.setAttribute("cards", cards);
+        // Pagination
+        int page = 1;
+        int pageSize = 10;
+        try {
+            String pageParam = request.getParameter("page");
+            if (pageParam != null && !pageParam.trim().isEmpty()) {
+                page = Integer.parseInt(pageParam);
+                if (page < 1)
+                    page = 1;
+            }
+        } catch (NumberFormatException ignored) {
+        }
+        int totalRecords = cards.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalRecords / pageSize));
+        if (page > totalPages)
+            page = totalPages;
+        int fromIndex = (page - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalRecords);
+        List<CardInfoListView> pagedCards = totalRecords == 0 ? java.util.Collections.emptyList()
+                : cards.subList(fromIndex, toIndex);
+
+        request.setAttribute("cards", pagedCards);
         request.setAttribute("statuses", java.util.Arrays.asList(CardInfoStatus.ALL_STATUSES));
         request.setAttribute("products", products);
         request.setAttribute("providers", providerMap.values());
@@ -56,8 +77,16 @@ public class StaffCardListController extends HttpServlet {
         request.setAttribute("expiryFrom", expiryFrom);
         request.setAttribute("expiryTo", expiryTo);
         request.setAttribute("sort", sort);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalRecords", totalRecords);
+        request.setAttribute("pageSize", pageSize);
 
-        request.getRequestDispatcher("/staff-cards.jsp").forward(request, response);
+        // Use staff master layout
+        request.setAttribute("pageTitle", "Quản lý thẻ");
+        request.setAttribute("active", "card");
+        request.setAttribute("contentPage", "staff-cards.jsp");
+        request.getRequestDispatcher("/staff.jsp").forward(request, response);
     }
 
     @Override

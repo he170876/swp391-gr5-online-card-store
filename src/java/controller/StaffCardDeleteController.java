@@ -15,7 +15,7 @@ import util.CardInfoStatus;
  * Staff controller for deleting/inactivating card info.
  * Implements UC26 - Delete Card Code (soft delete).
  */
-@WebServlet(name = "StaffCardDeleteController", urlPatterns = { "/staff/cards/delete/*" })
+@WebServlet(name = "StaffCardDeleteController", urlPatterns = { "/staff/card/delete/*" })
 public class StaffCardDeleteController extends HttpServlet {
 
     private final CardInfoDAO cardInfoDAO = new CardInfoDAO();
@@ -29,20 +29,20 @@ public class StaffCardDeleteController extends HttpServlet {
 
         long cardId = extractCardId(request);
         if (cardId == 0) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?error=invalid_id");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=invalid_id");
             return;
         }
 
         CardInfo card = cardInfoDAO.getById(cardId);
         if (card == null) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?error=not_found");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=not_found");
             return;
         }
 
         // UC26: Check if card has been used or assigned
         // (Assuming SOLD status means card has been used/assigned)
         if (CardInfoStatus.SOLD.equals(card.getStatus())) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?error=used_card");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=used_card");
             return;
         }
 
@@ -51,9 +51,9 @@ public class StaffCardDeleteController extends HttpServlet {
         boolean deleted = cardInfoDAO.update(card);
 
         if (deleted) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?success=deleted");
+            response.sendRedirect(request.getContextPath() + "/staff/card?success=deleted");
         } else {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?error=delete_failed");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=delete_failed");
         }
     }
 

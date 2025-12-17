@@ -11,6 +11,7 @@ import model.User;
 
 @WebFilter(urlPatterns = {
     "/staff.jsp",
+    "/staff",
     "/staff/*"
 })
 public class OnlyStaffFilter extends HttpFilter {

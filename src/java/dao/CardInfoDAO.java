@@ -79,6 +79,59 @@ public class CardInfoDAO extends DBContext {
         return 0;
     }
 
+    /**
+     * Đếm tổng số thẻ nạp trong hệ thống.
+     */
+    public int getTotalCards() {
+        try {
+            String sql = "SELECT COUNT(*) FROM CardInfo";
+            stm = connection.prepareStatement(sql);
+            rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("CardInfoDAO.getTotalCards: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    /**
+     * Đếm số thẻ theo từng trạng thái.
+     * @return Map với key là status, value là số lượng
+     */
+    public java.util.Map<String, Integer> countCardsByStatus() {
+        java.util.Map<String, Integer> result = new java.util.HashMap<>();
+        try {
+            String sql = "SELECT status, COUNT(*) as count FROM CardInfo GROUP BY status";
+            stm = connection.prepareStatement(sql);
+            rs = stm.executeQuery();
+            while (rs.next()) {
+                result.put(rs.getString("status"), rs.getInt("count"));
+            }
+        } catch (Exception e) {
+            System.out.println("CardInfoDAO.countCardsByStatus: " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * Đếm số thẻ còn sẵn (AVAILABLE).
+     */
+    public int getAvailableCardsCount() {
+        try {
+            String sql = "SELECT COUNT(*) FROM CardInfo WHERE status = 'AVAILABLE'";
+            stm = connection.prepareStatement(sql);
+            rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("CardInfoDAO.getAvailableCardsCount: " + e.getMessage());
+        }
+        return 0;
+    }
+
     private CardInfo mapResultSetToCardInfo(ResultSet rs) throws SQLException {
         CardInfo cardInfo = new CardInfo();
         cardInfo.setId(rs.getLong("id"));

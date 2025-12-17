@@ -20,7 +20,7 @@ import util.CardInfoStatus;
 /**
  * Staff controller for updating card info.
  */
-@WebServlet(name = "StaffCardUpdateController", urlPatterns = { "/staff/cards/edit/*" })
+@WebServlet(name = "StaffCardUpdateController", urlPatterns = { "/staff/card/edit/*" })
 public class StaffCardUpdateController extends HttpServlet {
 
     private final CardInfoDAO cardInfoDAO = new CardInfoDAO();
@@ -35,13 +35,18 @@ public class StaffCardUpdateController extends HttpServlet {
 
         long cardId = extractCardId(request);
         if (cardId == 0) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?error=invalid_id");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=invalid_id");
             return;
         }
 
         CardInfo card = cardInfoDAO.getById(cardId);
         if (card == null) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?error=not_found");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=not_found");
+            return;
+        }
+        // Không cho sửa thẻ đã bán
+        if (CardInfoStatus.SOLD.equals(card.getStatus())) {
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=used_card");
             return;
         }
 
@@ -49,7 +54,10 @@ public class StaffCardUpdateController extends HttpServlet {
         request.setAttribute("card", card);
         request.setAttribute("products", products);
         request.setAttribute("statuses", Arrays.asList(CardInfoStatus.ALL_STATUSES));
-        request.getRequestDispatcher("/staff-card-edit.jsp").forward(request, response);
+        request.setAttribute("pageTitle", "Sửa thông tin thẻ");
+        request.setAttribute("active", "card");
+        request.setAttribute("contentPage", "staff-card-edit.jsp");
+        request.getRequestDispatcher("/staff.jsp").forward(request, response);
     }
 
     @Override
@@ -61,13 +69,18 @@ public class StaffCardUpdateController extends HttpServlet {
 
         long cardId = extractCardId(request);
         if (cardId == 0) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?error=invalid_id");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=invalid_id");
             return;
         }
 
         CardInfo existing = cardInfoDAO.getById(cardId);
         if (existing == null) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?error=not_found");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=not_found");
+            return;
+        }
+        // Không cho sửa thẻ đã bán
+        if (CardInfoStatus.SOLD.equals(existing.getStatus())) {
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=used_card");
             return;
         }
 
@@ -131,7 +144,10 @@ public class StaffCardUpdateController extends HttpServlet {
             request.setAttribute("products", products);
             request.setAttribute("statuses", Arrays.asList(CardInfoStatus.ALL_STATUSES));
             request.setAttribute("error", errors.toString());
-            request.getRequestDispatcher("/staff-card-edit.jsp").forward(request, response);
+            request.setAttribute("pageTitle", "Sửa thông tin thẻ");
+            request.setAttribute("active", "card");
+            request.setAttribute("contentPage", "staff-card-edit.jsp");
+            request.getRequestDispatcher("/staff.jsp").forward(request, response);
             return;
         }
 
@@ -143,14 +159,17 @@ public class StaffCardUpdateController extends HttpServlet {
 
         boolean updated = cardInfoDAO.update(existing);
         if (updated) {
-            response.sendRedirect(request.getContextPath() + "/staff/cards?success=updated");
+            response.sendRedirect(request.getContextPath() + "/staff/card?success=updated");
         } else {
             List<Product> products = productDAO.listAll();
             request.setAttribute("card", existing);
             request.setAttribute("products", products);
             request.setAttribute("statuses", Arrays.asList(CardInfoStatus.ALL_STATUSES));
             request.setAttribute("error", "Không thể cập nhật card (kiểm tra ràng buộc DB)");
-            request.getRequestDispatcher("/staff-card-edit.jsp").forward(request, response);
+            request.setAttribute("pageTitle", "Sửa thông tin thẻ");
+            request.setAttribute("active", "card");
+            request.setAttribute("contentPage", "staff-card-edit.jsp");
+            request.getRequestDispatcher("/staff.jsp").forward(request, response);
         }
     }
 

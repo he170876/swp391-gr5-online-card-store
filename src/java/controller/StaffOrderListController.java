@@ -15,7 +15,7 @@ import service.OrderService;
 /**
  * UC28 - View Orders: Staff views all orders with optional filtering/sorting.
  */
-@WebServlet(name = "StaffOrderListController", urlPatterns = { "/staff/orders" })
+@WebServlet(name = "StaffOrderListController", urlPatterns = { "/staff/order" })
 public class StaffOrderListController extends HttpServlet {
 
     private final OrderService orderService = new OrderService();
@@ -52,8 +52,38 @@ public class StaffOrderListController extends HttpServlet {
             });
         }
 
-        request.setAttribute("orders", orders);
-        request.getRequestDispatcher("/staff-orders.jsp").forward(request, response);
+        // Pagination
+        int page = 1;
+        int pageSize = 10;
+        try {
+            String pageParam = request.getParameter("page");
+            if (pageParam != null && !pageParam.trim().isEmpty()) {
+                page = Integer.parseInt(pageParam);
+                if (page < 1)
+                    page = 1;
+            }
+        } catch (NumberFormatException ignored) {
+        }
+        int totalRecords = orders.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalRecords / pageSize));
+        if (page > totalPages)
+            page = totalPages;
+        int fromIndex = (page - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalRecords);
+        List<Order> pagedOrders = totalRecords == 0 ? java.util.Collections.emptyList()
+                : orders.subList(fromIndex, toIndex);
+
+        request.setAttribute("orders", pagedOrders);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalRecords", totalRecords);
+        request.setAttribute("pageSize", pageSize);
+
+        // Use staff master layout
+        request.setAttribute("pageTitle", "Quản lý đơn hàng");
+        request.setAttribute("active", "order");
+        request.setAttribute("contentPage", "staff-orders.jsp");
+        request.getRequestDispatcher("/staff.jsp").forward(request, response);
     }
 
     @Override

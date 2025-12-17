@@ -22,7 +22,7 @@ import model.Product;
  *
  * @author hades
  */
-@WebServlet(name = "HomePageController", urlPatterns = {"/home"})
+@WebServlet(name = "HomePageController", urlPatterns = { "/home" })
 public class HomePageController extends HttpServlet {
 
     @Override
@@ -58,7 +58,8 @@ public class HomePageController extends HttpServlet {
         }
     }
 
-    public void homeGuestandCustomer(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void homeGuestandCustomer(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         CustomerDAO dao = new CustomerDAO();
         List<Product> featured = dao.getActiveProducts(6);
         request.setAttribute("featuredProducts", featured);
