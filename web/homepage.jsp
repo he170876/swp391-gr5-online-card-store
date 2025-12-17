@@ -13,6 +13,7 @@
     <body>
 
         <jsp:include page="/component/header.jsp"/>
+        <jsp:include page="/component/navbar.jsp"/>
         <!-- Nội dung trang chính -->
 
         <div class="container my-4">
