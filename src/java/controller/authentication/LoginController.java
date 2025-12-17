@@ -82,12 +82,7 @@ public class LoginController extends HttpServlet {
         // Gửi thông tin user lên session
         request.getSession().setAttribute("user", user);
 
-        // Redirect theo role
-        if (user.getRoleId() == 3) {
-            response.sendRedirect(request.getContextPath() + "/customer/home");
-        } else {
-            response.sendRedirect(request.getContextPath() + "/home");
-        }
+        response.sendRedirect(request.getContextPath() + "/home");
     }
 
 }

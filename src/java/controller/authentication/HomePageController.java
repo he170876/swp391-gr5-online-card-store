@@ -29,31 +29,42 @@ public class HomePageController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        Optional<User> logged = Optional.ofNullable(request.getSession().getAttribute("user")).map(obj -> (User) obj);
+        Optional<User> logged = Optional.ofNullable(request.getSession().getAttribute("user"))
+                .map(obj -> (User) obj);
 
-        //chưa đăng nhập
-        if (logged.isEmpty()) {
-            CustomerDAO dao = new CustomerDAO();
-            List<Product> featured = dao.getActiveProducts(6);
-            request.setAttribute("featuredProducts", featured);
-            request.getRequestDispatcher("homepage.jsp").forward(request, response);
-            return;
-        }
-
-        //lấy lỗi
+        // Lấy lỗi nếu có
         String error = "";
         if (request.getParameter("error") != null && !request.getParameter("error").isBlank()) {
             error = "?error=" + URLEncoder.encode(request.getParameter("error"), StandardCharsets.UTF_8);
         }
 
-        switch ((int) logged.get().getRoleId()) {
-            case 3 ->
-                response.sendRedirect(request.getContextPath() + "/customer/home" + error);
-            case 2 ->
-                response.sendRedirect(request.getContextPath() + "/staff.jsp" + error);
-            case 1 ->
-                response.sendRedirect(request.getContextPath() + "/admin.jsp" + error);
+        if (logged.isEmpty()) {
+            // Chưa đăng nhập → hiển thị trang home cho khách
+            homeGuestandCustomer(request, response);
+            return;
         }
+
+        // Đã đăng nhập → phân quyền theo roleId
+        long roleId = logged.get().getRoleId();
+        if (roleId == 3) {
+            homeGuestandCustomer(request, response);
+        } else if (roleId == 2) {
+            response.sendRedirect(request.getContextPath() + "/staff.jsp" + error);
+        } else if (roleId == 1) {
+            response.sendRedirect(request.getContextPath() + "/admin.jsp" + error);
+        } else {
+            // fallback, nếu roleId không hợp lệ
+            homeGuestandCustomer(request, response);
+        }
+    }
+
+    public void homeGuestandCustomer(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        CustomerDAO dao = new CustomerDAO();
+        List<Product> featured = dao.getActiveProducts(6);
+        request.setAttribute("featuredProducts", featured);
+        request.getRequestDispatcher("homepage.jsp").forward(request, response);
+        return;
+
     }
 
     @Override
