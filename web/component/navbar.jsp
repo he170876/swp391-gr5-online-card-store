@@ -1,52 +1,192 @@
-<%@ page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><c:out value="${param.title != null ? param.title : 'Online Card Store'}"/></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="${pageContext.request.contextPath}/home">
-            <img src="${pageContext.request.contextPath}/img/smalllogo.jpg" alt="OCS" width="40" class="me-2 rounded">
-            <span>Online Card Store</span>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#customerNav"
-                aria-controls="customerNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+      .navbar-brand span {
+        font-weight: 700;
+      }
 
-        <div class="collapse navbar-collapse" id="customerNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
-                <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/customer/products">Sản phẩm</a></li>
+      .card-img-top {
+        object-fit: cover;
+        height: 180px;
+      }
 
-                <%-- Menu chỉ hiển thị khi user đã đăng nhập --%>
-                <c:if test="${not empty sessionScope.user}">
-                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/customer/wallet">Ví tiền</a></li>
-                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/customer/orders">Đơn hàng</a></li>
-                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/customer/profile">Hồ sơ</a></li>
-                    </c:if>
-            </ul>
+      .hero {
+        background: linear-gradient(120deg, #e8f0ff, #f7fbff);
+      }
 
-            <div class="d-flex align-items-center gap-3">
-                <c:choose>
-                    <%-- User đã đăng nhập --%>
-                    <c:when test="${not empty sessionScope.user}">
-                        <div class="text-end me-2">
-                            <div class="small text-muted">Xin chào, ${sessionScope.user.fullName}</div>
-                            <div class="small text-muted">Số dư ví</div>
-                            <div class="fw-semibold text-success">
-                                <fmt:formatNumber value="${sessionScope.user.walletBalance}" type="currency"/>
-                            </div>
-                        </div>
-                        <a class="btn btn-outline-danger" href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
-                    </c:when>
+      /* Chat UI đẹp, to hơn */
+      #chat-messages {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+        height: 500px; /* To hơn nhiều */
+        overflow-y: auto;
+        background: #f5f7fa;
+      }
 
-                    <%-- Guest chưa đăng nhập --%>
-                    <c:otherwise>
-                        <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/login">Đăng nhập</a>
-                        <a class="btn btn-primary" href="${pageContext.request.contextPath}/register">Đăng ký</a>
-                    </c:otherwise>
-                </c:choose>
-            </div>
-        </div>
+      .message {
+        max-width: 85%;
+        padding: 14px 18px;
+        border-radius: 22px;
+        line-height: 1.6;
+        word-wrap: break-word;
+        font-size: 1rem;
+      }
+
+      .user-message {
+        align-self: flex-end;
+        background: #0d6efd;
+        color: white;
+        border-bottom-right-radius: 6px;
+      }
+
+      .ai-message {
+        align-self: flex-start;
+        background: white;
+        color: #212529;
+        border: 1px solid #e9ecef;
+        border-bottom-left-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      }
+
+      .ai-message img {
+        max-width: 100%;
+        border-radius: 10px;
+        margin-top: 10px;
+      }
+
+      .modal-dialog {
+        max-width: 600px; /* Modal rộng hơn */
+      }
+
+      .modal-content {
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .modal-header {
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        color: white;
+        border-bottom: none;
+      }
+
+      .modal-body {
+        padding: 0;
+      }
+
+      .input-group {
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #dee2e6;
+      }
+
+      #chat-icon button {
+        box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
+        transition: transform 0.2s;
+      }
+
+      #chat-icon button:hover {
+        transform: scale(1.1);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="chat-icon" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+      <button class="btn btn-primary rounded-circle shadow-lg" style="width: 65px; height: 65px;" onclick="openChat()">
+        <i class="fas fa-robot fa-2x"></i>
+      </button>
     </div>
-</nav>
+
+    <div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="chatModalLabel"><i class="fas fa-robot me-2"></i>Chat với Gemini</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <div id="chat-messages"></div>
+            <div class="input-group">
+              <input type="text" id="chat-input" class="form-control rounded-pill" placeholder="Nhập tin nhắn..." autocomplete="off">
+              <button class="btn btn-success rounded-pill ms-2" onclick="sendMessage()">Gửi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+      import { GoogleGenAI } from "https://cdn.jsdelivr.net/npm/@google/genai@latest";
+
+      // ⚠️ THAY KEY MỚI NGAY! Key public sẽ hết quota nhanh
+      const API_KEY = "AIzaSyDrnJ-Q1eGVXU5Vm7w-kq32U_Dyfc-1PEA";
+      const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+      async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const messagesDiv = document.getElementById('chat-messages');
+        const userText = input.value.trim();
+        if (!userText) return;
+
+        // Thêm tin nhắn user - dùng + để tránh EL parse
+        messagesDiv.innerHTML += 
+          '<div class="message user-message">' +
+            userText.replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+          '</div>';
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        input.value = '';
+
+        try {
+          const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash", // Model hiện tại (tháng 12/2025)
+            contents: userText,
+          });
+          const text = response.text;
+
+          // Render Markdown đẹp bằng marked.js
+          const html = marked.parse(text);
+
+          // Thêm tin nhắn AI
+          messagesDiv.innerHTML += 
+            '<div class="message ai-message">' +
+              html +
+            '</div>';
+        } catch (error) {
+          messagesDiv.innerHTML += 
+            '<div class="message ai-message text-danger">' +
+              '<strong>Lỗi:</strong> ' + error.message + '<br>' +
+              '<small>(Thường do hết quota free tier ~20-50 requests/ngày. Tạo key mới hoặc enable billing)</small>' +
+            '</div>';
+        }
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      function openChat() {
+        new bootstrap.Modal(document.getElementById('chatModal')).show();
+      }
+
+      document.getElementById('chat-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+      });
+
+      window.openChat = openChat;
+      window.sendMessage = sendMessage;
+    </script>
+

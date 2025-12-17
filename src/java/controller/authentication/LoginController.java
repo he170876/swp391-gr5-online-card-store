@@ -20,7 +20,7 @@ import model.User;
  *
  * @author hades
  */
-@WebServlet(name = "LoginController", urlPatterns = {"/login"})
+@WebServlet(name = "LoginController", urlPatterns = { "/login" })
 public class LoginController extends HttpServlet {
 
     @Override

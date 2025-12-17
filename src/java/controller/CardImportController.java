@@ -18,7 +18,7 @@ import service.CardCodeImportService.ImportResult;
 /**
  * Handles CSV import for card codes.
  */
-@WebServlet(name = "CardImportController", urlPatterns = { "/staff/cards-import" })
+@WebServlet(name = "CardImportController", urlPatterns = { "/staff/card/import" })
 @MultipartConfig
 public class CardImportController extends HttpServlet {
 
@@ -33,7 +33,10 @@ public class CardImportController extends HttpServlet {
         }
         List<Product> products = productDAO.listAll();
         request.setAttribute("products", products);
-        request.getRequestDispatcher("/card-import.jsp").forward(request, response);
+        request.setAttribute("pageTitle", "Nhập mã thẻ (CSV)");
+        request.setAttribute("active", "card");
+        request.setAttribute("contentPage", "card-import.jsp");
+        request.getRequestDispatcher("/staff.jsp").forward(request, response);
     }
 
     @Override
@@ -50,7 +53,10 @@ public class CardImportController extends HttpServlet {
             request.setAttribute("error", "Thiếu productId");
             List<Product> products = productDAO.listAll();
             request.setAttribute("products", products);
-            request.getRequestDispatcher("/card-import.jsp").forward(request, response);
+            request.setAttribute("pageTitle", "Nhập mã thẻ (CSV)");
+            request.setAttribute("active", "card");
+            request.setAttribute("contentPage", "card-import.jsp");
+            request.getRequestDispatcher("/staff.jsp").forward(request, response);
             return;
         }
 
@@ -61,7 +67,10 @@ public class CardImportController extends HttpServlet {
             request.setAttribute("error", "productId không hợp lệ");
             List<Product> products = productDAO.listAll();
             request.setAttribute("products", products);
-            request.getRequestDispatcher("/card-import.jsp").forward(request, response);
+            request.setAttribute("pageTitle", "Nhập mã thẻ (CSV)");
+            request.setAttribute("active", "card");
+            request.setAttribute("contentPage", "card-import.jsp");
+            request.getRequestDispatcher("/staff.jsp").forward(request, response);
             return;
         }
 
@@ -69,7 +78,10 @@ public class CardImportController extends HttpServlet {
             request.setAttribute("error", "Chưa chọn file CSV");
             List<Product> products = productDAO.listAll();
             request.setAttribute("products", products);
-            request.getRequestDispatcher("/card-import.jsp").forward(request, response);
+            request.setAttribute("pageTitle", "Nhập mã thẻ (CSV)");
+            request.setAttribute("active", "card");
+            request.setAttribute("contentPage", "card-import.jsp");
+            request.getRequestDispatcher("/staff.jsp").forward(request, response);
             return;
         }
 
@@ -82,7 +94,10 @@ public class CardImportController extends HttpServlet {
 
         List<Product> products = productDAO.listAll();
         request.setAttribute("products", products);
-        request.getRequestDispatcher("/card-import.jsp").forward(request, response);
+        request.setAttribute("pageTitle", "Nhập mã thẻ (CSV)");
+        request.setAttribute("active", "card");
+        request.setAttribute("contentPage", "card-import.jsp");
+        request.getRequestDispatcher("/staff.jsp").forward(request, response);
     }
 
     private boolean requireStaff(HttpServletRequest request, HttpServletResponse response) throws IOException {

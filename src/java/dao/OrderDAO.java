@@ -110,6 +110,23 @@ public class OrderDAO extends DBContext {
         return 0.0;
     }
 
+    /**
+     * Đếm tổng số đơn hàng trong hệ thống.
+     */
+    public int getTotalOrders() {
+        try {
+            String sql = "SELECT COUNT(*) FROM [Order]";
+            stm = connection.prepareStatement(sql);
+            rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("OrderDAO.getTotalOrders: " + e.getMessage());
+        }
+        return 0;
+    }
+
     public int getOrdersToday() {
         try {
             String sql = "SELECT COUNT(*) FROM [Order] WHERE CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)";
@@ -220,6 +237,60 @@ public class OrderDAO extends DBContext {
             System.out.println(e);
         }
         return null;
+    }
+
+    /**
+     * Đếm số đơn hàng theo từng trạng thái.
+     * @return Map với key là status, value là số lượng
+     */
+    public java.util.Map<String, Integer> countOrdersByStatus() {
+        java.util.Map<String, Integer> result = new java.util.HashMap<>();
+        try {
+            String sql = "SELECT status, COUNT(*) as count FROM [Order] GROUP BY status";
+            stm = connection.prepareStatement(sql);
+            rs = stm.executeQuery();
+            while (rs.next()) {
+                result.put(rs.getString("status"), rs.getInt("count"));
+            }
+        } catch (Exception e) {
+            System.out.println("OrderDAO.countOrdersByStatus: " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * Lấy số lượng đơn hàng mỗi ngày trong 7 ngày gần nhất.
+     * @return List<Integer> với 7 giá trị (từ ngày xa nhất đến gần nhất)
+     */
+    public java.util.List<Integer> getOrdersLast7Days() {
+        java.util.List<Integer> orders = new java.util.ArrayList<>();
+        try {
+            String sql = "SELECT CAST(created_at AS DATE) as order_date, COUNT(*) as count "
+                    + "FROM [Order] "
+                    + "WHERE created_at >= DATEADD(DAY, -6, CAST(GETDATE() AS DATE)) "
+                    + "GROUP BY CAST(created_at AS DATE) "
+                    + "ORDER BY CAST(created_at AS DATE)";
+            stm = connection.prepareStatement(sql);
+            rs = stm.executeQuery();
+            java.util.Map<String, Integer> dayMap = new java.util.HashMap<>();
+            while (rs.next()) {
+                dayMap.put(rs.getString("order_date"), rs.getInt("count"));
+            }
+            // Đảm bảo có đủ 7 ngày (fill với 0 nếu thiếu)
+            java.time.LocalDate today = java.time.LocalDate.now();
+            for (int i = 6; i >= 0; i--) {
+                java.time.LocalDate date = today.minusDays(i);
+                String dateStr = date.toString();
+                orders.add(dayMap.getOrDefault(dateStr, 0));
+            }
+        } catch (Exception e) {
+            System.out.println("OrderDAO.getOrdersLast7Days: " + e.getMessage());
+            // Nếu lỗi, trả về list 7 số 0
+            for (int i = 0; i < 7; i++) {
+                orders.add(0);
+            }
+        }
+        return orders;
     }
 
 }

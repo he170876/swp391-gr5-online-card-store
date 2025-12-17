@@ -58,7 +58,8 @@ public class HomePageController extends HttpServlet {
         }
     }
 
-    public void homeGuestandCustomer(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void homeGuestandCustomer(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         CustomerDAO dao = new CustomerDAO();
         List<Product> featured = dao.getActiveProducts(6);
         request.setAttribute("featuredProducts", featured);

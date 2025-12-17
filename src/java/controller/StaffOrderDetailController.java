@@ -38,14 +38,20 @@ public class StaffOrderDetailController extends HttpServlet {
             orderId = Long.parseLong(orderIdRaw);
         } catch (NumberFormatException e) {
             request.setAttribute("error", "Invalid order ID");
-            request.getRequestDispatcher("/staff-order-detail.jsp").forward(request, response);
+            request.setAttribute("pageTitle", "Chi tiết đơn hàng");
+            request.setAttribute("active", "order");
+            request.setAttribute("contentPage", "staff-order-detail.jsp");
+            request.getRequestDispatcher("/staff.jsp").forward(request, response);
             return;
         }
 
         Order order = orderService.getOrderById(orderId);
         if (order == null) {
             request.setAttribute("error", "Order not found");
-            request.getRequestDispatcher("/staff-order-detail.jsp").forward(request, response);
+            request.setAttribute("pageTitle", "Chi tiết đơn hàng");
+            request.setAttribute("active", "order");
+            request.setAttribute("contentPage", "staff-order-detail.jsp");
+            request.getRequestDispatcher("/staff.jsp").forward(request, response);
             return;
         }
 
@@ -60,7 +66,10 @@ public class StaffOrderDetailController extends HttpServlet {
         }
 
         request.setAttribute("order", order);
-        request.getRequestDispatcher("/staff-order-detail.jsp").forward(request, response);
+        request.setAttribute("pageTitle", "Chi tiết đơn hàng");
+        request.setAttribute("active", "order");
+        request.setAttribute("contentPage", "staff-order-detail.jsp");
+        request.getRequestDispatcher("/staff.jsp").forward(request, response);
     }
 
     @Override
