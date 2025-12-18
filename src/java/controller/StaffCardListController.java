@@ -45,7 +45,6 @@ public class StaffCardListController extends HttpServlet {
                 sort);
         List<Product> products = cardInfoService.listProducts();
         Map<Long, Provider> providerMap = cardInfoService.mapProviders();
-
         // Pagination
         int page = 1;
         int pageSize = 10;

@@ -118,7 +118,23 @@
                 <p><strong>Mã thẻ:</strong> <code><%= card.getCode() %></code></p>
                 <p><strong>Serial:</strong> <code><%= serialStr %></code></p>
                 <p><strong>Ngày hết hạn:</strong> <%= expiryStr %></p>
-                <p><strong>Trạng thái:</strong> <%= card.getStatus() %></p>
+                <p><strong>Trạng thái:</strong>
+                    <%
+                        String status = card.getStatus();
+                        if ("AVAILABLE".equals(status)) {
+                            out.print("Còn hiệu lực");
+                        } else if ("SOLD".equals(status)) {
+                            out.print("Đã bán");
+                        } else if ("EXPIRED".equals(status)) {
+                            out.print("Hết hạn");
+                        } else if ("INACTIVE".equals(status)) {
+                            out.print("Ngừng hoạt động");
+                        } else {
+                            out.print("Không xác định");
+                        }
+                    %>
+                </p>
+
                 <% } else if (order.getCardInfoId() > 0) { %>
                 <p class="text-warning fw-bold">Thẻ chưa được gán.</p>
                 <% } else { %>

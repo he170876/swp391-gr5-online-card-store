@@ -27,9 +27,15 @@
     <a href="${pageContext.request.contextPath}/staff/card/import" class="btn btn-primary">
         <i class="fa fa-file-import me-2"></i>Nhập thẻ
     </a>
-    
-</div>
 
+
+</div>
+<c:if test="${not empty param.success}">
+    <div class="alert alert-success" role="alert">${param.success}</div>
+</c:if>
+<c:if test="${not empty param.error}">
+    <div class="alert alert-danger" role="alert">${param.error}</div>
+</c:if>
 <!-- Filter Card -->
 <div class="filter-card">
     <form class="row g-3" method="get" action="${pageContext.request.contextPath}/staff/card">
@@ -38,7 +44,7 @@
             <select name="status" class="form-select">
                 <option value="">Tất cả</option>
                 <% for (String s : statuses) { %>
-                    <option value="<%= s %>" <%= s.equals(selectedStatus) ? "selected" : "" %>><%= CardInfoStatus.getDisplayName(s) %></option>
+                <option value="<%= s %>" <%= s.equals(selectedStatus) ? "selected" : "" %>><%= CardInfoStatus.getDisplayName(s) %></option>
                 <% } %>
             </select>
         </div>
@@ -47,7 +53,7 @@
             <select name="productId" class="form-select">
                 <option value="">Tất cả</option>
                 <% for (Product p : products) { %>
-                    <option value="<%= p.getId() %>" <%= (selectedProductId != null && selectedProductId == p.getId()) ? "selected" : "" %>><%= p.getName() %></option>
+                <option value="<%= p.getId() %>" <%= (selectedProductId != null && selectedProductId == p.getId()) ? "selected" : "" %>><%= p.getName() %></option>
                 <% } %>
             </select>
         </div>
@@ -56,7 +62,7 @@
             <select name="providerId" class="form-select">
                 <option value="">Tất cả</option>
                 <% for (Provider pr : providers) { %>
-                    <option value="<%= pr.getId() %>" <%= (selectedProviderId != null && selectedProviderId == pr.getId()) ? "selected" : "" %>><%= pr.getName() %></option>
+                <option value="<%= pr.getId() %>" <%= (selectedProviderId != null && selectedProviderId == pr.getId()) ? "selected" : "" %>><%= pr.getName() %></option>
                 <% } %>
             </select>
         </div>
@@ -84,7 +90,7 @@
             <a href="${pageContext.request.contextPath}/staff/card" class="btn btn-outline-secondary ms-2">Đặt lại</a>
         </div>
     </form>
-    
+
     <c:if test="${totalRecords > 0}">
         <div class="mt-3 text-muted">
             Tổng: ${totalRecords} thẻ
@@ -101,34 +107,34 @@
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
-                <tr>
-                    <th width="6%">#</th>
-                    <th width="18%">Sản phẩm</th>
-                    <th width="16%">Nhà cung cấp</th>
-                    <th width="18%">Mã thẻ</th>
-                    <th width="12%">Serial</th>
-                    <th width="10%">Hết hạn</th>
-                    <th width="10%">Trạng thái</th>
-                    <th width="10%">Tạo lúc</th>
-                    <th width="10%">Hành động</th>
-                </tr>
+                    <tr>
+                        <th width="6%">#</th>
+                        <th width="18%">Sản phẩm</th>
+                        <th width="16%">Nhà cung cấp</th>
+                        <th width="18%">Mã thẻ</th>
+                        <th width="12%">Serial</th>
+                        <th width="10%">Hết hạn</th>
+                        <th width="10%">Trạng thái</th>
+                        <th width="10%">Tạo lúc</th>
+                        <th width="10%">Hành động</th>
+                    </tr>
                 </thead>
                 <tbody>
-                <% 
-                    if (cards == null) { cards = new java.util.ArrayList<>(); }
-                    Integer cpObj = (Integer) request.getAttribute("currentPage");
-                    Integer psObj = (Integer) request.getAttribute("pageSize");
-                    int currentPage = cpObj == null ? 1 : cpObj.intValue();
-                    int pageSize = psObj == null ? 10 : psObj.intValue();
-                    int idx = 0;
-                    if (cards.isEmpty()) { %>
+                    <% 
+                        if (cards == null) { cards = new java.util.ArrayList<>(); }
+                        Integer cpObj = (Integer) request.getAttribute("currentPage");
+                        Integer psObj = (Integer) request.getAttribute("pageSize");
+                        int currentPage = cpObj == null ? 1 : cpObj.intValue();
+                        int pageSize = psObj == null ? 10 : psObj.intValue();
+                        int idx = 0;
+                        if (cards.isEmpty()) { %>
                     <tr>
                         <td colspan="9" class="text-center py-4">
                             <i class="fa fa-inbox fa-3x text-muted mb-3 d-block"></i>
                             Không tìm thấy thẻ nào
                         </td>
                     </tr>
-                <% } else { for (CardInfoListView c : cards) { %>
+                    <% } else { for (CardInfoListView c : cards) { %>
                     <tr>
                         <td><%= (currentPage - 1) * pageSize + (++idx) %></td>
                         <td><%= c.getProductName() %></td>
@@ -137,8 +143,26 @@
                         <td><%= c.getSerial() %></td>
                         <td><%= c.getExpiryDate() == null ? "" : c.getExpiryDate() %></td>
                         <td>
-                            <span class="badge bg-info"><%= CardInfoStatus.getDisplayName(c.getStatus()) %></span>
+                            <%
+                                String status = c.getStatus();
+                                String badgeClass = "bg-secondary";
+
+                                if ("AVAILABLE".equals(status)) {
+                                    badgeClass = "bg-success";   // xanh
+                                } else if ("SOLD".equals(status)) {
+                                    badgeClass = "bg-primary";   // xanh dương
+                                } else if ("EXPIRED".equals(status)) {
+                                    badgeClass = "bg-danger";    // đỏ
+                                } else if ("INACTIVE".equals(status)) {
+                                    badgeClass = "bg-dark";      // đen
+                                }
+                            %>
+                            <span class="badge <%= badgeClass %>">
+                                <%= CardInfoStatus.getDisplayName(status) %>
+                            </span>
                         </td>
+
+
                         <td><%= c.getCreatedAt() == null ? "" : c.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy")) %></td>
                         <td>
                             <div class="btn-group" role="group">
@@ -146,7 +170,7 @@
                                     <i class="fa fa-edit"></i>
                                 </a>
                                 <form action="${pageContext.request.contextPath}/staff/card/delete/<%= c.getId() %>" method="POST" style="display:inline;" 
-                                    onsubmit="return confirm('Bạn có chắc muốn xóa thẻ này? (Chỉ có thể xóa thẻ chưa được sử dụng)');">
+                                      onsubmit="return confirm('Bạn có chắc muốn xóa thẻ này? (Chỉ có thể xóa thẻ chưa được sử dụng)');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger action-btn" title="Xóa">
                                         <i class="fa fa-trash"></i>
                                     </button>
@@ -154,7 +178,7 @@
                             </div>
                         </td>
                     </tr>
-                <% } } %>
+                    <% } } %>
                 </tbody>
             </table>
         </div>

@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
@@ -20,7 +21,7 @@ import util.CardInfoStatus;
 /**
  * Staff controller for updating card info.
  */
-@WebServlet(name = "StaffCardUpdateController", urlPatterns = { "/staff/card/edit/*" })
+@WebServlet(name = "StaffCardUpdateController", urlPatterns = {"/staff/card/edit/*"})
 public class StaffCardUpdateController extends HttpServlet {
 
     private final CardInfoDAO cardInfoDAO = new CardInfoDAO();
@@ -35,18 +36,21 @@ public class StaffCardUpdateController extends HttpServlet {
 
         long cardId = extractCardId(request);
         if (cardId == 0) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=invalid_id");
+            String error = URLEncoder.encode("Không tìm thấy Id!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
 
         CardInfo card = cardInfoDAO.getById(cardId);
         if (card == null) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=not_found");
+            String error = URLEncoder.encode("Không tìm thấy Thẻ!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
         // Không cho sửa thẻ đã bán
         if (CardInfoStatus.SOLD.equals(card.getStatus())) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=used_card");
+            String error = URLEncoder.encode("Thẻ đang được dùng hoặc đã bán!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
 
@@ -69,18 +73,21 @@ public class StaffCardUpdateController extends HttpServlet {
 
         long cardId = extractCardId(request);
         if (cardId == 0) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=invalid_id");
+            String error = URLEncoder.encode("Không tìm thấy Id!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
 
         CardInfo existing = cardInfoDAO.getById(cardId);
         if (existing == null) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=not_found");
+            String error = URLEncoder.encode("Không tìm thấy Thẻ!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
         // Không cho sửa thẻ đã bán
         if (CardInfoStatus.SOLD.equals(existing.getStatus())) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=used_card");
+            String error = URLEncoder.encode("Thẻ đang được dùng hoặc đã bán!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
 
@@ -112,6 +119,30 @@ public class StaffCardUpdateController extends HttpServlet {
                 expiryDate = LocalDate.parse(expiryDateRaw);
             } catch (DateTimeParseException e) {
                 errors.append("Ngày hết hạn không hợp lệ (yyyy-MM-dd). ");
+            }
+        }
+
+        LocalDate today = LocalDate.now();
+
+        // Nếu có ngày hết hạn
+        if (expiryDate != null) {
+
+            // 🔴 ĐÃ HẾT HẠN
+            if (expiryDate.isBefore(today)) {
+
+                // Không cho mở bán
+                if ("AVAILABLE".equals(status)) {
+                    errors.append("Thẻ đã hết hạn, không thể mở bán. ");
+                }
+
+                // Tự động set EXPIRED
+                status = CardInfoStatus.EXPIRED;
+            } // 🟢 CHƯA HẾT HẠN
+            else {
+                // Nếu staff chọn EXPIRED nhưng chưa hết hạn → không hợp lệ
+                if (CardInfoStatus.EXPIRED.equals(status)) {
+                    errors.append("Thẻ chưa hết hạn, không thể chọn trạng thái hết hạn. ");
+                }
             }
         }
 
@@ -159,7 +190,7 @@ public class StaffCardUpdateController extends HttpServlet {
 
         boolean updated = cardInfoDAO.update(existing);
         if (updated) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?success=updated");
+            response.sendRedirect(request.getContextPath() + "/staff/card?success=Cập nhập thành công!");
         } else {
             List<Product> products = productDAO.listAll();
             request.setAttribute("card", existing);

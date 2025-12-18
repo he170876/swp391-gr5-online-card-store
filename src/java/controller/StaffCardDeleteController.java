@@ -7,42 +7,53 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 import model.CardInfo;
 import model.User;
 import util.CardInfoStatus;
 
 /**
- * Staff controller for deleting/inactivating card info.
- * Implements UC26 - Delete Card Code (soft delete).
+ * Staff controller for deleting/inactivating card info. Implements UC26 -
+ * Delete Card Code (soft delete).
  */
-@WebServlet(name = "StaffCardDeleteController", urlPatterns = { "/staff/card/delete/*" })
+@WebServlet(name = "StaffCardDeleteController", urlPatterns = {"/staff/card/delete/*"})
 public class StaffCardDeleteController extends HttpServlet {
 
     private final CardInfoDAO cardInfoDAO = new CardInfoDAO();
 
     @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doPost(request, response);
+    }
+
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         if (!requireStaff(request, response)) {
             return;
         }
 
         long cardId = extractCardId(request);
         if (cardId == 0) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=invalid_id");
+            String error = URLEncoder.encode("Không tìm thấy Id!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
 
         CardInfo card = cardInfoDAO.getById(cardId);
         if (card == null) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=not_found");
+            String error = URLEncoder.encode("Không tìm thấy Thẻ!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
 
         // UC26: Check if card has been used or assigned
         // (Assuming SOLD status means card has been used/assigned)
         if (CardInfoStatus.SOLD.equals(card.getStatus())) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=used_card");
+            String error = URLEncoder.encode("Thẻ đang được dùng hoặc đã bán!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
             return;
         }
 
@@ -51,9 +62,11 @@ public class StaffCardDeleteController extends HttpServlet {
         boolean deleted = cardInfoDAO.update(card);
 
         if (deleted) {
-            response.sendRedirect(request.getContextPath() + "/staff/card?success=deleted");
+            String success = URLEncoder.encode("Xóa thành công!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?success=" + success);
         } else {
-            response.sendRedirect(request.getContextPath() + "/staff/card?error=delete_failed");
+            String error = URLEncoder.encode("Xóa không thành công!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + "/staff/card?error=" + error);
         }
     }
 
